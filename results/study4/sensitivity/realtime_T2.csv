@@ -1,0 +1,17 @@
+window,columns,model,n,accuracy,log_loss,dm_logloss_p_vs_base
+all test meetings,original columns,S+M,212,0.8679245283018868,0.2937619378951589,
+all test meetings,original columns,S+M+H,212,0.8915094339622641,0.27206865568152855,0.14444519369664488
+all test meetings,original columns,S+M+C,212,0.8726415094339622,0.28144167969438677,0.20680013022740984
+all test meetings,original columns,S+M+N,212,0.910377358490566,0.2537309843902995,0.09493720857269272
+all test meetings,fallback columns dropped,rt S+M,212,0.8867924528301887,0.29752094099903537,
+all test meetings,fallback columns dropped,rt S+M+H,212,0.9009433962264151,0.2759694203347551,0.03757032704640073
+all test meetings,fallback columns dropped,rt S+M+C,212,0.8820754716981132,0.28162610197001353,0.1903639358060487
+all test meetings,fallback columns dropped,rt S+M+N,212,0.8962264150943396,0.2404986200835455,0.071090614278419
+after the last fallback row,original columns,S+M,116,0.8189655172413793,0.39115974312653373,
+after the last fallback row,original columns,S+M+H,116,0.8362068965517241,0.36013979177532457,0.17762673143327556
+after the last fallback row,original columns,S+M+C,116,0.8189655172413793,0.3627146218834787,0.1398291026198596
+after the last fallback row,original columns,S+M+N,116,0.8793103448275862,0.308228438586745,0.05744492817059155
+after the last fallback row,fallback columns dropped,rt S+M,116,0.8362068965517241,0.4145817886160893,
+after the last fallback row,fallback columns dropped,rt S+M+H,116,0.8448275862068966,0.39582410559626774,0.16447563919954922
+after the last fallback row,fallback columns dropped,rt S+M+C,116,0.8275862068965517,0.37526020492773904,0.11161824720869562
+after the last fallback row,fallback columns dropped,rt S+M+N,116,0.8706896551724138,0.3033378660881918,0.055831797836358166

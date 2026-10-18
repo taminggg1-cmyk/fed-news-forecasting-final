@@ -1,0 +1,16 @@
+group,n,base_correct,new_correct,net,model
+cut,34,24,24,0,S+M+H
+hold,140,128,132,4,S+M+H
+hike,38,32,33,1,S+M+H
+turning point,42,28,32,4,S+M+H
+all,212,184,189,5,S+M+H
+cut,34,24,25,1,S+M+C
+hold,140,128,128,0,S+M+C
+hike,38,32,32,0,S+M+C
+turning point,42,28,28,0,S+M+C
+all,212,184,185,1,S+M+C
+cut,34,24,25,1,S+M+N
+hold,140,128,134,6,S+M+N
+hike,38,32,34,2,S+M+N
+turning point,42,28,32,4,S+M+N
+all,212,184,193,9,S+M+N

@@ -1,0 +1,42 @@
+features: {'S+M': ('H', 24), 'S+M+H': ('H', 26), 'S+M+C': ('C', 26), 'placebo-C': ('Cp', 26), 'placebo-H': ('Hp', 26), 'strict': ('C', 16), 'strict+C': ('C', 18), 'strict+H': ('H', 18)}
+scheduled meetings 206 logit RMSE 0.1271 acc 0.864
+holds 140 moves 66
+
+lstm: RMSE 0.1420  acc 0.786
+  single-seed RMSE min 0.1400 max 0.1535 mean 0.1464 (n=8)
+  total excess SE 0.8287; on holds 0.7857; on moves 0.0431
+  top-5 meetings share of excess 0.76: [('2002-11-06', 0.157), ('2009-01-28', 0.153), ('2023-03-22', 0.12), ('2001-05-15', 0.115), ('2020-12-16', 0.084)]
+  mean |pred change| on holds: net 0.0690 logit 0.0383
+  false moves on holds: net 28 logit 12
+  refits 7; training rows first 48 last 246
+  hidden [256, 256, 128, 16, 128, 128, 64]
+  lookback [8, 2, 2, 2, 2, 2, 8]
+  epochs [15, 8, 9, 29, 50, 16, 20]
+  layers [1, 2, 2, 2, 2, 1, 1]
+  parameters per refit: min 4881 median 211073 max 815361
+
+gru: RMSE 0.1445  acc 0.806
+  single-seed RMSE min 0.1415 max 0.1621 mean 0.1485 (n=8)
+  total excess SE 0.9762; on holds 1.1472; on moves -0.1709
+  top-5 meetings share of excess 1.03: [('2009-04-29', 0.257), ('2009-01-28', 0.249), ('2023-03-22', 0.19), ('2009-03-18', 0.19), ('2001-05-15', 0.121)]
+  mean |pred change| on holds: net 0.0747 logit 0.0383
+  false moves on holds: net 25 logit 12
+  refits 7; training rows first 48 last 246
+  hidden [256, 256, 256, 16, 128, 128, 256]
+  lookback [2, 2, 8, 2, 2, 2, 8]
+  epochs [3, 16, 21, 61, 25, 27, 10]
+  layers [1, 2, 1, 2, 2, 2, 1]
+  parameters per refit: min 3665 median 216833 max 611585
+
+tft: RMSE 0.1415  acc 0.864
+  single-seed RMSE min 0.1434 max 0.1761 mean 0.1551 (n=8)
+  total excess SE 0.7993; on holds 0.1380; on moves 0.6613
+  top-5 meetings share of excess 0.66: [('2022-03-16', 0.15), ('2001-01-31', 0.112), ('2001-03-20', 0.095), ('2001-05-15', 0.089), ('2007-09-18', 0.08)]
+  mean |pred change| on holds: net 0.0552 logit 0.0383
+  false moves on holds: net 18 logit 12
+  refits 7; training rows first 48 last 246
+  hidden [64, 16, 8, 8, 8, 8, 8]
+  lookback [8, 2, 2, 2, 2, 2, 2]
+  epochs [10, 26, 41, 64, 57, 51, 21]
+  layers [1, 1, 1, 1, 1, 1, 1]
+  parameters per refit: min 8673 median 8673 max 416521

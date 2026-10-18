@@ -1,0 +1,11 @@
+{
+  "task": "T1",
+  "device": "cuda",
+  "seconds_per_trial_at_last_point": {
+    "tft": 29.04685966173808
+  },
+  "hours_per_arm_upper_bound": {
+    "tft": 1.6944001469347212
+  },
+  "arms_per_architecture": 8
+}

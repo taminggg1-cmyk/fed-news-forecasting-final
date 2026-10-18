@@ -1,0 +1,13 @@
+{
+  "task": "T1",
+  "device": "cpu",
+  "seconds_per_trial_at_last_point": {
+    "lstm": 5.75078821182251,
+    "gru": 8.276341199874878
+  },
+  "hours_per_arm_upper_bound": {
+    "lstm": 0.3354626456896464,
+    "gru": 0.4827865699927012
+  },
+  "arms_per_architecture": 8
+}

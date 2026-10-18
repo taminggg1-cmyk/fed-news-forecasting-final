@@ -1,0 +1,9 @@
+{
+  "n_sentences": 343742,
+  "n_requests": 13750,
+  "sample_requests": 200,
+  "mean_input_per_request": 1544.025,
+  "projected_total_tokens": 23980280,
+  "limit": 20000000,
+  "within_limit": false
+}

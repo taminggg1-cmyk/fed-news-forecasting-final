@@ -1,0 +1,93 @@
+{
+  "48": {
+    "hidden": 256,
+    "dropout": 0.48393503676402716,
+    "lr": 0.0029131562923201894,
+    "weight_decay": 2.4089469852140426e-05,
+    "lookback": 4,
+    "batch": 16,
+    "layers": 2,
+    "epochs": 9,
+    "cv_mse": 0.009103890436958448,
+    "n_feasible_trials": 17,
+    "date": "2001-01-03"
+  },
+  "83": {
+    "hidden": 256,
+    "dropout": 0.16252958710327134,
+    "lr": 0.003336218455717796,
+    "weight_decay": 6.66033259692402e-06,
+    "lookback": 2,
+    "batch": 64,
+    "layers": 2,
+    "epochs": 18,
+    "cv_mse": 0.010925242924467745,
+    "n_feasible_trials": 20,
+    "date": "2005-02-02"
+  },
+  "117": {
+    "hidden": 128,
+    "dropout": 0.4920858909311669,
+    "lr": 0.003392642377026367,
+    "weight_decay": 4.4100081364686386e-05,
+    "lookback": 4,
+    "batch": 16,
+    "layers": 1,
+    "epochs": 8,
+    "cv_mse": 0.016249689114361955,
+    "n_feasible_trials": 20,
+    "date": "2009-01-28"
+  },
+  "149": {
+    "hidden": 16,
+    "dropout": 0.20195275722489456,
+    "lr": 0.00972385413047191,
+    "weight_decay": 0.007824794833513104,
+    "lookback": 4,
+    "batch": 64,
+    "layers": 2,
+    "epochs": 44,
+    "cv_mse": 0.012557312516018942,
+    "n_feasible_trials": 20,
+    "date": "2013-01-30"
+  },
+  "181": {
+    "hidden": 128,
+    "dropout": 0.12697484799438963,
+    "lr": 0.0037317792619474483,
+    "weight_decay": 1.3287067445527561e-06,
+    "lookback": 2,
+    "batch": 64,
+    "layers": 2,
+    "epochs": 26,
+    "cv_mse": 0.009370884873047079,
+    "n_feasible_trials": 20,
+    "date": "2017-02-01"
+  },
+  "214": {
+    "hidden": 256,
+    "dropout": 0.25171206674767604,
+    "lr": 0.008935309129190385,
+    "weight_decay": 1.3201225490262949e-06,
+    "lookback": 4,
+    "batch": 64,
+    "layers": 1,
+    "epochs": 17,
+    "cv_mse": 0.013178621550804084,
+    "n_feasible_trials": 20,
+    "date": "2021-01-27"
+  },
+  "246": {
+    "hidden": 256,
+    "dropout": 0.23224973422339407,
+    "lr": 0.0025711242379706217,
+    "weight_decay": 2.713726465659946e-05,
+    "lookback": 4,
+    "batch": 16,
+    "layers": 2,
+    "epochs": 9,
+    "cv_mse": 0.014486821013852335,
+    "n_feasible_trials": 20,
+    "date": "2025-01-29"
+  }
+}

@@ -1,0 +1,1 @@
+"""AMENDED neural study, Study 4 version 2 (protocol commit 6048e0d, written after v1 results; not a pre-registration). Tuned LSTM/GRU/TFT, mixed and strict real-time arms. Version 1 is superseded (commit 74ab18f, results/study4/superseded_v1)."""

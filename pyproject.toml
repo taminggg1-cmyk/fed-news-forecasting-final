@@ -1,0 +1,13 @@
+[project]
+name = "fed_news"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "network: downloads data from the internet",
+    "gpu: needs CUDA and cached Hugging Face models",
+]
+addopts = "-m 'not network and not gpu'"

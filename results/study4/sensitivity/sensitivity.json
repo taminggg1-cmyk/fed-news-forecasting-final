@@ -1,0 +1,20 @@
+{
+  "primary_dependence": {
+    "hac_p_lag4": 0.15562448738792234,
+    "hac_p_lag8": 0.1537438158764044,
+    "block_bootstrap_8": {
+      "mean": 0.021693282213630392,
+      "ci90": [
+        -0.008452305780016073,
+        0.061083756564721196
+      ],
+      "share_at_or_below_zero": 0.1542
+    }
+  },
+  "mcnemar_haiku": {
+    "fixes": 6,
+    "breaks": 1,
+    "p_one_sided": 0.0625,
+    "p_two_sided": 0.125
+  }
+}

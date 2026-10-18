@@ -1,0 +1,328 @@
+{
+  "a_cutoffs": {
+    "months": 393,
+    "violations": []
+  },
+  "b_folds": [
+    {
+      "task": "T1",
+      "point": "2001-01-01",
+      "rows_before": 70,
+      "validation_rows": [
+        32,
+        68
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12
+      ]
+    },
+    {
+      "task": "T1",
+      "point": "2005-01-01",
+      "rows_before": 117,
+      "validation_rows": [
+        41,
+        115
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12,
+        24
+      ]
+    },
+    {
+      "task": "T1",
+      "point": "2009-01-01",
+      "rows_before": 165,
+      "validation_rows": [
+        51,
+        163
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12,
+        24
+      ]
+    },
+    {
+      "task": "T1",
+      "point": "2013-01-01",
+      "rows_before": 213,
+      "validation_rows": [
+        60,
+        211
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12,
+        24
+      ]
+    },
+    {
+      "task": "T1",
+      "point": "2017-01-01",
+      "rows_before": 261,
+      "validation_rows": [
+        70,
+        259
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12,
+        24
+      ]
+    },
+    {
+      "task": "T1",
+      "point": "2021-01-01",
+      "rows_before": 309,
+      "validation_rows": [
+        80,
+        307
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12,
+        24
+      ]
+    },
+    {
+      "task": "T1",
+      "point": "2025-01-01",
+      "rows_before": 357,
+      "validation_rows": [
+        89,
+        355
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        3,
+        6,
+        12,
+        24
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2001-01-03",
+      "rows_before": 48,
+      "validation_rows": [
+        18,
+        47
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2005-02-02",
+      "rows_before": 83,
+      "validation_rows": [
+        25,
+        82
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8,
+        12
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2009-01-28",
+      "rows_before": 117,
+      "validation_rows": [
+        32,
+        116
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8,
+        12
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2013-01-30",
+      "rows_before": 149,
+      "validation_rows": [
+        38,
+        148
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8,
+        12
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2017-02-01",
+      "rows_before": 181,
+      "validation_rows": [
+        45,
+        180
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8,
+        12
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2021-01-27",
+      "rows_before": 214,
+      "validation_rows": [
+        51,
+        213
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8,
+        12
+      ]
+    },
+    {
+      "task": "T2",
+      "point": "2025-01-29",
+      "rows_before": 246,
+      "validation_rows": [
+        58,
+        245
+      ],
+      "last_validation_row_below_point_minus_gap": true,
+      "train_end_is_block_start_minus_gap": true,
+      "feasible_lookbacks": [
+        2,
+        4,
+        8,
+        12
+      ]
+    }
+  ],
+  "c_rate_units": [
+    {
+      "task": "T1",
+      "score": 0.038213508601715795,
+      "score_in_basis_points_over_10000": 0.038213508601715795,
+      "equal": true
+    },
+    {
+      "task": "T2",
+      "score": 0.02963698667740296,
+      "score_in_basis_points_over_10000": 0.02963698667740296,
+      "equal": true
+    }
+  ],
+  "d_feature_truncation": [
+    {
+      "task": "T1",
+      "rows": [
+        "1998-04-01",
+        "2002-04-01",
+        "2006-06-01",
+        "2010-06-01",
+        "2014-07-01",
+        "2018-07-01",
+        "2022-08-01",
+        "2026-09-01"
+      ],
+      "values_checked": 200,
+      "mismatches_outside_fallback_series": [],
+      "fallback_series_values_not_rebuildable": 18
+    },
+    {
+      "task": "T2",
+      "rows": [
+        "1998-06-30",
+        "2002-01-30",
+        "2006-03-28",
+        "2010-01-27",
+        "2014-04-30",
+        "2018-06-13",
+        "2022-06-15",
+        "2026-09-16"
+      ],
+      "values_checked": 200,
+      "mismatches_outside_fallback_series": [],
+      "fallback_series_values_not_rebuildable": 18
+    }
+  ],
+  "e_forecast_truncation": [
+    {
+      "task": "T1",
+      "checks": [
+        {
+          "date": "2009-06-01",
+          "with_later_rows": 0.21003592585114655,
+          "without": 0.21003592585114655,
+          "same": true
+        },
+        {
+          "date": "2026-09-01",
+          "with_later_rows": 3.662908118781167,
+          "without": 3.662908118781167,
+          "same": true
+        }
+      ]
+    },
+    {
+      "task": "T2",
+      "checks": [
+        {
+          "date": "2009-09-23",
+          "with_later_rows": 0.05670407711673396,
+          "without": 0.05670407711673396,
+          "same": true
+        },
+        {
+          "date": "2026-09-16",
+          "with_later_rows": 3.9892043916103685,
+          "without": 3.9892043916103685,
+          "same": true
+        }
+      ]
+    }
+  ]
+}

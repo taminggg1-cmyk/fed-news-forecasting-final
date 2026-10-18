@@ -1,0 +1,43 @@
+{
+  "n_test_meetings": 212,
+  "first": "2001-01-03",
+  "last": "2026-09-16",
+  "primary_dm_logloss_p": 0.14444519369664488,
+  "placebo_dm_logloss_p": 0.4410611318580375,
+  "shuffled_dm_logloss_p": 1.0,
+  "memory_flag_recalled": {
+    "n": 211,
+    "n_indicator": 190,
+    "coef": 0.010362215872632361,
+    "se": 0.03347058896733585,
+    "p_one_sided": 0.37843574198380103,
+    "flag": false
+  },
+  "memory_dated_descriptive": {
+    "n": 211,
+    "n_indicator": 194,
+    "coef": 0.011759625960626475,
+    "se": 0.02532601430642855,
+    "p_one_sided": 0.3212056987296621
+  },
+  "haiku_vs_chrono_dm_logloss_p": 0.1895463325594654,
+  "chrono_dm_logloss_p": 0.20680013022740984,
+  "post_cutoff": [
+    {
+      "date": "2026-07-29",
+      "class_true": 1,
+      "log_loss_S+M": 1.204127867877047,
+      "log_loss_S+M+H": 1.4556212515741433,
+      "log_loss_S+M+C": 1.0523845278129111
+    },
+    {
+      "date": "2026-09-16",
+      "class_true": 2,
+      "log_loss_S+M": 0.12427265272349078,
+      "log_loss_S+M+H": 0.09859259489786158,
+      "log_loss_S+M+C": 0.11653760189264947
+    }
+  ],
+  "decision": "not supported",
+  "wording": "the Haiku index does not improve forecasts over the no-news model"
+}

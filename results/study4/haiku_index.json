@@ -1,0 +1,12 @@
+{
+  "n_sentences": 343742,
+  "n_unlabelled": 25,
+  "n_failed_first": 5,
+  "tokens": {
+    "input": 21392903,
+    "output": 2002828
+  },
+  "n_docs_without_labels": 0,
+  "share_hawkish": 0.084918339917729,
+  "share_dovish": 0.1240697965334466
+}
