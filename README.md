@@ -30,7 +30,8 @@ uv run python -m fed_news.studies.networks.run_networks forecast --task T2 --dev
 **Where is the data?** In `data/` after the download step (the code finds it there by itself; you can also set
 `FED_NEWS_DATA` to any folder). [`docs/DATA.md`](docs/DATA.md) describes every file, and
 [`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md) shows where each one is downloaded from, which file builds it and which
-file reads it next. **Start reading the code with `docs/CODE_GUIDE.md`.**
+file reads it next. **Start reading the code with `docs/CODE_GUIDE.md`.** To download the raw data yourself instead
+of using the zip: `uv run python -m fed_news.download` (every source, in order; needs a free FRED API key).
 
 ## Short answer
 

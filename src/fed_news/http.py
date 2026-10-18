@@ -1,5 +1,7 @@
-"""Download a web page or file, with retries. Every download is cached in <data>/cache/http/, so a rebuild can
-run offline.
+"""THE ONE PLACE THAT DOWNLOADS: every web request in the project goes through get() below.
+
+Download a web page or file, with retries. Every download is cached in <data>/cache/http/, so a rebuild can
+run offline. To download everything in order, run python -m fed_news.download (download/__main__.py).
 
 Details: HTTP GET with retries and an on-disk cache, so every scrape can be re-run offline.
 """

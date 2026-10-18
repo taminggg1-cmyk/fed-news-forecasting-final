@@ -11,7 +11,8 @@ does, what it reads, what it writes and how to run it.
   author's machine).
 - **Ready-made:** `uv run python scripts/download_data.py` downloads the release zip (79 MB, 53 files), unpacks it
   into `data/` and checks every file's sha256. Every file is described in [`DATA.md`](DATA.md).
-- **From scratch:** the `download/` modules fetch everything from the internet (next section). Only ALFRED needs a
+- **From scratch:** `uv run python -m fed_news.download` fetches everything from the internet, in order (next
+  section). Only ALFRED needs a
   key (free, from FRED); the Haiku tone needs a paid Anthropic key.
 
 ## The pipeline
@@ -53,6 +54,11 @@ Both study runners call `features/swap_tone.py` to put one scorer's tone (Haiku 
 panel, so every comparison uses the same rows.
 
 ## Stage 1: what is downloaded, from where
+
+**Where the downloading starts:** `uv run python -m fed_news.download` runs every step below in order
+([`download/__main__.py`](../src/fed_news/download/__main__.py)); add `--refresh` to download again. Each module's
+`load_...` function downloads its file only when it is missing, through `http.get`
+([`http.py`](../src/fed_news/http.py)), the one function that opens a network connection.
 
 | Data | Downloaded from | Code (`src/fed_news/`) | Saved as (`<data>/`) |
 | --- | --- | --- | --- |
