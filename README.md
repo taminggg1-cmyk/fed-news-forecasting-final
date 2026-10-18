@@ -55,6 +55,96 @@ cut / hold / hike and the new target rate. Monthly: 308 months, predicting the a
 The design is in [`docs/design/`](docs/design/2026-10-12-study4-haiku-index-tuned-design.md) (section 12 is the
 version 2 amendment).
 
+## Data
+
+Every input is dated, and each training row uses only what was public before its cutoff: the day before the meeting,
+or the start of the second US business day of the month. [`docs/DATA.md`](docs/DATA.md) describes every file.
+
+| Input | Source | What the models see |
+| --- | --- | --- |
+| Economic statistics | ALFRED (St. Louis Fed), every published vintage of 12 series; FRED | 16 statistics (`s_*`, block S): 13 from ALFRED as first published (M2 monthly and yearly change, PCE and core PCE prices, payrolls, hourly earnings, GDP, U-6 monthly and yearly change, PPI, CPI, core CPI, house prices), plus the previous rate and two yield-curve slopes |
+| Market signals (meetings only) | FRED daily series | 8 signals (`m_*`, block M): 3-month bill and 6-month, 1-year and 2-year yields minus the target, target level, zero-bound flag, VIX, oil |
+| Fed documents | federalreserve.gov | 2,840 documents: 1,981 speeches, 263 minutes, 262 Beige Books, 240 statements, 94 press conferences. The tone readers use all but the Beige Books (2,578 documents, 343,742 sentences) |
+| Human stance labels | Hugging Face: Trillion Dollar Words (`gtfintechlab/fomc_communication`) and World Central Banks (`gtfintechlab/federal_reserve_system`) | 3,074 hawkish / dovish / neutral sentences, dated by the first Fed document that contains them. Used only to train ChronoBERT |
+| Targets | FOMC calendar and target rate; FRED `FEDFUNDS` | Meetings: new target rate, change, cut / hold / hike. Months: average effective fed funds rate |
+| News indices (sensitivity checks only) | SF Fed news sentiment, geopolitical risk (GPR), policy uncertainty (EPU) | `n_news`, `n_gpr`, `n_epu`, and Beige Book tone `n_beige` (Loughran–McDonald) |
+
+**Fed tone, two readers.** Both score the same sentences, and a document's tone is the mean over its sentences.
+
+- **ChronoBERT** ([`features/chronobert_tone.py`](src/fed_news/features/chronobert_tone.py)). For each year y, the
+  ChronoBERT checkpoint from year y−1 is fine-tuned on human labels dated before y (80% to train, 20% held out; 326
+  training sentences for the 2000 classifier, 2,431 for 2025), with 3 seeds averaged. Sentence tone = P(hawkish) −
+  P(dovish). Held-out accuracy rises from 56.0% (macro-F1 0.374) for the 2000 classifier to 70.1% (macro-F1 0.691)
+  for 2025 ([`results/stance_accuracy.csv`](results/stance_accuracy.csv)).
+- **Claude Haiku 5.5** ([`features/haiku_tone.py`](src/fed_news/features/haiku_tone.py)). Each sentence is masked
+  (years, months, numbers, names and events hidden) and sent, 25 per request, through the Message Batches API.
+  Hawkish = +1, dovish = −1, neutral = 0.
+
+Each row's tone, `n_stance`, is the mean of three group means (statements and press conferences, minutes, speeches)
+over the documents released since the previous row's cutoff, carried forward when there are none; `n_stance_chg` is
+its change from the previous row. "C" and "H" mark which reader's tone a model uses.
+
+**Rows.** Meetings: 270 rows from February 1994, of which 212 test meetings from 2001 (206 scheduled). Months: 393
+rows from January 1994, of which 308 test months from 2001. Earlier rows are used only for training.
+
+## Architecture pipeline
+
+```mermaid
+flowchart LR
+  subgraph SRC["1 · Sources"]
+    ALF["ALFRED vintages<br/>12 series"]
+    FRED["FRED<br/>daily markets, FEDFUNDS"]
+    FED["federalreserve.gov<br/>2,840 Fed documents"]
+    HF["Hugging Face<br/>3,074 labelled sentences"]
+  end
+  subgraph TONE["2 · Fed tone, per sentence then per document"]
+    CB["ChronoBERT<br/>retrained each year<br/>on earlier labels only"]
+    HK["Claude Haiku 5.5<br/>masked sentences"]
+  end
+  subgraph ROWS["3 · Training rows, cut at each forecast date"]
+    S["S: 16 statistics<br/>as first published"]
+    M["M: 8 market signals<br/>meetings only"]
+    N["Tone: n_stance, n_stance_chg<br/>C or H"]
+    Y["Targets<br/>rate, cut / hold / hike"]
+  end
+  subgraph MOD["4 · Walk-forward models"]
+    OL["Ordered logit<br/>Study 4"]
+    NN["LSTM / GRU / TFT<br/>tuned with Optuna, 8 seeds<br/>Study 4 version 2"]
+  end
+  EV["5 · Evaluation<br/>accuracy, RMSE, log loss<br/>DM-HLN, Newey-West, Holm<br/>placebo, shuffled labels"]
+  ALF --> S
+  FRED --> S
+  FRED --> M
+  FRED --> Y
+  FED --> Y
+  HF --> CB
+  FED --> CB
+  FED --> HK
+  CB --> N
+  HK --> N
+  S --> OL
+  M --> OL
+  N --> OL
+  Y --> OL
+  S --> NN
+  M --> NN
+  N --> NN
+  Y --> NN
+  OL --> EV
+  NN --> EV
+```
+
+| Model | Input | Output | Training |
+| --- | --- | --- | --- |
+| Ordered logit (Study 4, meetings) | One row: S + M (24 columns), with or without the 2 tone columns, standardised on the training rows | P(cut), P(hold), P(hike). Rate = previous rate + the probability-weighted average move size | Refit for every test meeting on all earlier meetings. L2 penalty chosen from 0.01–3.0 by 5-fold expanding-window CV inside the training rows |
+| LSTM, GRU (Study 4 version 2) | A sequence of the last 2, 4, 8 or 12 meetings (3, 6, 12 or 24 months). Meetings: S + M ± tone. Months: S ± tone | Rate change. Rate = previous rate + change; cut / hold / hike from a ±0.125-point band | Optuna (TPE, 20 trials) at the first test row of 2001, 2005, …, 2025, scored on 4 expanding validation folds before that point. Search: hidden size, layers, dropout, learning rate, weight decay, lookback, batch. Refit every 8 meetings or 12 months; mean of 8 seeds |
+| TFT-style ([`models/tft.py`](src/fed_news/models/tft.py)) | The same tensors as the LSTM | Same as LSTM | Same as LSTM, with attention heads in place of layers. Variable selection networks, gated residual networks and interpretable multi-head attention (Lim et al., 2021); point forecast under MSE |
+
+Each model runs in matched versions on the same rows: no news, + ChronoBERT tone (C), + Haiku tone (H) and a placebo
+(tone shifted by half the sample). The ordered logit adds a shuffled-label control; the networks add the same versions
+on strict data (only the 8 fully vintaged statistics). The
+file-by-file version of this pipeline, with every command, is in [`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md).
+
 ## Results
 
 **Per meeting (206 scheduled meetings, 2001–2026): decisions called correctly, with p for the news versions**
