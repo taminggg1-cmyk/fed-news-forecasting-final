@@ -1,5 +1,5 @@
-"""Tests for the helpers copied from earlier designs (features/haiku_prompt.py, features/realtime.py,
-features/stance_panel.py, models/neural.standardise, evaluation/stats_tests.nw_summary). The test functions are
+"""Tests for the helpers copied from earlier designs (features/haiku_prompt.py, features/strict_columns.py,
+features/swap_tone.py, models/neural.standardise, evaluation/significance.nw_summary). The test functions are
 copied unchanged from tests/test_poc_llm_labels.py, test_poc_haiku_leak.py, test_naive_stance.py and
 test_study5.py in fed-news-forecasting (ad2183c); only the module names they use are new."""
 from types import SimpleNamespace
@@ -8,11 +8,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from fed_news.evaluation import stats_tests
-from fed_news.features import haiku_prompt as pl, realtime, stance_panel as ns
+from fed_news.evaluation import significance
+from fed_news.features import haiku_prompt as pl, strict_columns, swap_tone as ns
 
 hl = pl  # the leak-test masking now lives in haiku_prompt too
-s5 = SimpleNamespace(nw_summary=stats_tests.nw_summary, check_vintages=realtime.check_vintages)
+s5 = SimpleNamespace(nw_summary=significance.nw_summary, check_vintages=strict_columns.check_vintages)
 NAMES = {"bernanke", "kohn"}
 
 

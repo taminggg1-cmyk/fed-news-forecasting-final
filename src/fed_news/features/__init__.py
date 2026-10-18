@@ -1,1 +1,2 @@
-"""Feature construction: per-year ChronoBERT and Haiku stance scores, the six news columns, and the T1/T2 panels."""
+"""Built from the downloaded data: Fed tone (ChronoBERT, Claude Haiku), the news columns, and the training rows
+(one per meeting, one per month)."""

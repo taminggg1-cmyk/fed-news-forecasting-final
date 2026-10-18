@@ -2,7 +2,7 @@
 
     linear.py       ridge on the rate change (T1), penalised ordered logit (T2), Taylor rule, penalty selection
                     (this file was fed_news/models.py until 2026-10-17)
-    walkforward.py  the linear walk-forward engine: ladder of specs, t-2 training rule, placebo and shuffled controls
+    walk_forward.py the linear walk-forward engine: ladder of specs, t-2 training rule, placebo and shuffled controls
     neural.py       LSTM / GRU regressors, sequence building and training loops
     tft.py          the compact TFT-inspired network
 

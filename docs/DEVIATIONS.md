@@ -68,3 +68,27 @@ produced. Code was copied unchanged except for the following.
   here, `config.PREREG_ELSEWHERE` records where it is, and `prereg_ok` accepts it.
 - The version 1 networks (`results/study4/superseded_v1/`, superseded and not to be cited) and every earlier design
   were left out; they remain in the original repository.
+
+### Readability pass (2026-10-18, later the same day)
+
+At the author's request the code was made easier to read. No calculation changed; the byte-for-byte rerun below is
+the check.
+
+- Folders and files were renamed to plain names (`collect/` to `download/`, `tune.py` to `run_networks.py`, and so
+  on); the full old-to-new table is at the end of [`CODE_GUIDE.md`](CODE_GUIDE.md). The design document and the
+  sections above use the old names.
+- Every module now starts with a header (what it does, what it reads, what it writes, how to run it), and every
+  function has a one-line docstring. `docs/CODE_GUIDE.md` maps every data source to the file that downloads it, the
+  file it is saved as, and the code that reads it next.
+- Removed code from earlier designs that the final study never calls and that read files absent here: the Plan 1
+  report writer in `evaluation/metrics.py` (formerly `evaluate.py`), the Plan 1 Clark-West runner in
+  `evaluation/clark_west.py`, and the Plan 2 early-stopping loop in `models/neural.py`, with their tests.
+- `python -m fed_news.features.panels t1b` and `python -m fed_news.features.news_columns t1b t2` now build the
+  monthly panel and its news columns from the command line. `t1b_full.pkl`, built interactively in the original
+  project, was rebuilt this way and matched the saved file exactly.
+- The data folder now defaults to `data/` inside the repository when it exists (`scripts/download_data.py` fills
+  it); `FED_NEWS_DATA` still overrides, and `D:/fed_news` remains the last fallback. The Hugging Face cache is set to
+  `D:/hf_cache` only on Windows.
+- `pyproject.toml` pins the package versions that produced the results, and `uv.lock` locks the full environment
+  for `uv sync`. `results/pip_freeze.txt` was replaced by the environment that produced the results: the earlier
+  file predated Optuna and the Anthropic SDK.

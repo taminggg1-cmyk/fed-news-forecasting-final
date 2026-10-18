@@ -6,7 +6,8 @@ Version 1 must not be cited (it is in fed-news-forecasting, `results/study4/supe
 Plan 2 networks are in fed-news-forecasting `results/h2a/`; their untuned forecasts used in the "settings"
 rows are copied to `results/inputs_from_earlier/paper_settings/`.
 
-Code: `src/fed_news/studies/study4_networks_v2/tune.py` (`python -m fed_news.studies.study4_networks_v2.tune forecast`).
+Code: `src/fed_news/studies/networks/run_networks.py` (`python -m fed_news.studies.networks.run_networks forecast`;
+called `tune.py` in the original repository).
 
 **Which file is which.** The data-vintage treatment is in the feature-set name, in every file name and in the
 `features` column of the metrics and comparison tables:

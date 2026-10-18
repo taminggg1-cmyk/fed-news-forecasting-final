@@ -1,13 +1,23 @@
-"""Paths and every fixed setting of the design (spec sections 4, 6, 7, 8)."""
+"""Every setting in one place.
+
+WHERE THE DATA IS (DATA below): the folder in the environment variable FED_NEWS_DATA if set; else <repo>/data,
+which `python scripts/download_data.py` fills from this repository's release; else D:/fed_news (the author's
+machine). docs/DATA.md lists every file. Results go to results/.
+
+Details: Paths and every fixed setting of the design (spec sections 4, 6, 7, 8).
+"""
 import os
 from pathlib import Path
 
 import numpy as np
 
-os.environ.setdefault("HF_HOME", "D:/hf_cache")
+if os.name == "nt":  # the author's Windows machine keeps the Hugging Face cache on D:
+    os.environ.setdefault("HF_HOME", "D:/hf_cache")
 
 REPO = Path(__file__).resolve().parents[2]
-DATA = Path(os.environ.get("FED_NEWS_DATA", "D:/fed_news"))
+# The data folder: FED_NEWS_DATA if set; else <repo>/data if it exists (scripts/download_data.py creates it);
+# else D:/fed_news (the author's machine).
+DATA = Path(os.environ.get("FED_NEWS_DATA") or (REPO / "data" if (REPO / "data").is_dir() else "D:/fed_news"))
 CACHE = DATA / "cache"
 SECRETS = DATA / "secrets"
 RESULTS = REPO / "results"
@@ -48,5 +58,6 @@ def report_path(name: str) -> Path:
     return path
 
 def ensure_dirs() -> None:
+    """Create the data, cache, secrets and results folders if they are missing."""
     for path in (DATA, CACHE, SECRETS, RESULTS):
         path.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,8 @@
-"""HTTP GET with retries and an on-disk cache, so every scrape can be re-run offline."""
+"""Download a web page or file, with retries. Every download is cached in <data>/cache/http/, so a rebuild can
+run offline.
+
+Details: HTTP GET with retries and an on-disk cache, so every scrape can be re-run offline.
+"""
 import hashlib
 import time
 
@@ -11,6 +15,7 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (academic research; fed funds forecasting)
 
 def get(url: str, binary: bool = False, retries: int = 3, pause: float = 0.3,
         cache: bool = True):
+    """Return the text (or bytes) at `url`, from the cache when it is there; download and cache it otherwise."""
     path = config.CACHE / "http" / hashlib.sha1(url.encode()).hexdigest()
     if cache and path.exists():
         data = path.read_bytes()

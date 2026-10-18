@@ -1,8 +1,8 @@
 """Descriptive diagnostics (2026-10-18, not a registered test): why the ordered logit beats the tuned networks on
 the 206 scheduled meetings (Study 4 version 2, base S+M, normal data).
 
-Run from the repository root: PYTHONPATH=src python audit/2026-10-18/why_simple_model_wins.py
-Needs the cached panels (D:/fed_news or FED_NEWS_DATA). Output: why_simple_model_wins.txt in this folder.
+Run from the repository root: uv run python audit/why_simple_model_wins.py > audit/why_simple_model_wins.txt
+Needs the data folder (docs/DATA.md).
 """
 import glob
 import json
@@ -10,11 +10,11 @@ import json
 import numpy as np
 import pandas as pd
 
-from fed_news.studies.study4_networks_v2 import tune
+from fed_news.studies.networks import run_networks
 
 R = "results/study4"
-cfg = tune.TASKS["T2"]
-pan = tune.panels_for(cfg)
+cfg = run_networks.TASKS["T2"]
+pan = run_networks.panels_for(cfg)
 print("features:", {k: (v[0], len(v[1])) for k, v in cfg.features.items()})
 
 logit = pd.read_csv(f"{R}/preds_T2_S+M.csv", parse_dates=["date"]).set_index("date")
@@ -58,6 +58,6 @@ for arch in ("lstm", "gru", "tft"):
     if n_feat:
         params = []
         for k in keys:
-            m = tune._model(arch, n_feat, st[k], 0)
+            m = run_networks._model(arch, n_feat, st[k], 0)
             params.append(sum(p.numel() for p in m.parameters()))
         print(f"  parameters per refit: min {min(params)} median {int(np.median(params))} max {max(params)}")

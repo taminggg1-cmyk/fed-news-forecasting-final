@@ -2,8 +2,9 @@
 
 The data files the final study reads are attached to this repository's release
 [`data-2026-10-18`](https://github.com/taminggg1-cmyk/fed-news-forecasting-final/releases/tag/data-2026-10-18) as
-`final_study_data.zip`. Unzip it and point `FED_NEWS_DATA` at the `fed_news_data` folder (the code's default is
-`D:/fed_news`). `MANIFEST.txt` (also [`docs/DATA_MANIFEST.txt`](DATA_MANIFEST.txt)) gives the sha256 and size of
+`final_study_data.zip`. The easy way: `uv run python scripts/download_data.py` downloads it, unpacks it into
+`data/` (where the code looks by itself) and checks every file. By hand: unzip it and point `FED_NEWS_DATA` at
+the `fed_news_data` folder. `MANIFEST.txt` (also [`docs/DATA_MANIFEST.txt`](DATA_MANIFEST.txt)) gives the sha256 and size of
 every file. These are the exact files that produced `results/study4/`: rerunning the simple model, the network
 evaluations, the pooled test and the diagnostics on them reproduced every saved output byte for byte (2026-10-18).
 

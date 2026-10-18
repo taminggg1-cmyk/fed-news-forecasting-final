@@ -32,18 +32,3 @@ def test_compare_checks_dates(tmp_path):
         assert "dates" in str(err)
     else:
         raise AssertionError("mismatched dates must raise")
-
-
-def test_main_writes_table(tmp_path, monkeypatch):
-    rng = np.random.default_rng(1)
-    for task, n in (("T1", 40), ("T2", 30)):
-        dates = pd.date_range("2001-01-01", periods=n, freq="MS")
-        y = rng.normal(size=n)
-        for name, scale in (("S", 1.0), ("S+N", 0.5)):
-            pd.DataFrame({"date": dates, "y_true": y, "y_pred": y + rng.normal(scale=scale, size=n)}).to_csv(
-                tmp_path / f"preds_{task}_{name}.csv", index=False)
-    monkeypatch.setattr(cw.config, "RESULTS", tmp_path)
-    table = cw.main()
-    assert list(table["task"]) == ["T1", "T2"]
-    assert {"n", "dm_hln_p", "clark_west_t", "clark_west_p"} <= set(table.columns)
-    assert (tmp_path / "exploratory" / "clark_west.csv").exists()

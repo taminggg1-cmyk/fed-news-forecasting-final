@@ -3,3 +3,7 @@ __pycache__/
 .pytest_cache/
 results/*.pkl
 logs/
+
+# local data and environments
+data/
+.venv/

@@ -1,5 +1,7 @@
 # Vendored unchanged from gold_gpt2/src/tft.py (Plan 2, spec section 7).
-"""A compact Temporal Fusion Transformer, built to take the same tensors as the LSTM.
+"""MODEL: the TFT-style network (a compact Temporal Fusion Transformer).
+
+Details: A compact Temporal Fusion Transformer, built to take the same tensors as the LSTM.
 
 Why this rather than `pytorch_forecasting.TemporalFusionTransformer`: the reference
 implementation wants its own `TimeSeriesDataSet`, does its own normalisation and encoding,
@@ -34,11 +36,13 @@ import torch.nn.functional as F
 
 
 class GLU(nn.Module):
+    """Gated linear unit: a linear layer whose output is gated by a sigmoid."""
     def __init__(self, size: int):
         super().__init__()
         self.fc = nn.Linear(size, size * 2)
 
     def forward(self, x):
+        """Gated output."""
         a, b = self.fc(x).chunk(2, dim=-1)
         return a * torch.sigmoid(b)
 
@@ -59,6 +63,7 @@ class GRN(nn.Module):
         self.out = nn.Linear(hidden, output_size) if hidden != output_size else None
 
     def forward(self, x):
+        """Gated residual output (input skip + gated two-layer transform, then layer norm)."""
         skip = self.project(x) if self.project is not None else x
         h = F.elu(self.fc1(x))
         h = self.fc2(h)
@@ -92,6 +97,7 @@ class BatchedGRN(nn.Module):
                 self.load_from(i, g)
 
     def load_from(self, i, g):
+        """Copy the weights of one GRN into slot i."""
         self.w_skip[i] = g.project.weight[:, 0]; self.b_skip[i] = g.project.bias
         self.w1[i] = g.fc1.weight[:, 0]; self.b1[i] = g.fc1.bias
         self.w2[i] = g.fc2.weight.T; self.b2[i] = g.fc2.bias
@@ -100,6 +106,7 @@ class BatchedGRN(nn.Module):
 
     def forward(self, x):
         # x: (batch, time, n) -> (batch, time, n, hidden)
+        """All variables' GRN outputs at once: (batch, time, n, hidden)."""
         x = x.unsqueeze(-1)
         skip = x * self.w_skip + self.b_skip
         h = F.elu(x * self.w1 + self.b1)
@@ -124,6 +131,7 @@ class VariableSelection(nn.Module):
 
     def forward(self, x):
         # x: (batch, time, n_vars)
+        """Weighted mix of the transformed variables, and the weights."""
         weights = torch.softmax(self.weight_grn(x), dim=-1).unsqueeze(-1)
         transformed = self.var_grns(x)  # (batch, time, n_vars, hidden)
         combined = (transformed * weights).sum(dim=-2)
@@ -144,6 +152,7 @@ class InterpretableMultiHeadAttention(nn.Module):
         self.drop = nn.Dropout(dropout)
 
     def forward(self, x):
+        """Causal attention output and the averaged attention weights."""
         batch, time, _ = x.shape
         q = self.q(x).view(batch, time, self.n_heads, self.d_head).transpose(1, 2)
         k = self.k(x).view(batch, time, self.n_heads, self.d_head).transpose(1, 2)
@@ -160,6 +169,7 @@ class InterpretableMultiHeadAttention(nn.Module):
 
 
 class CompactTFT(nn.Module):
+    """Variable selection, an LSTM, causal attention and gated skips; forecasts from the last time step."""
     def __init__(self, n_features: int, hidden: int = 32, n_heads: int = 4,
                  dropout: float = 0.2):
         super().__init__()
@@ -177,6 +187,7 @@ class CompactTFT(nn.Module):
         self.last_weights = None
 
     def forward(self, x):
+        """Forecast for each sequence."""
         selected, var_weights = self.vsn(x)
         self.last_weights = var_weights.detach().mean(dim=(0, 1))
 

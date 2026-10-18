@@ -14,6 +14,24 @@ repository, where the date of each design can be checked.
 *Draft research, October 2026. The code, analyses and documents were written with an AI coding agent
 (see [How this was made](#how-this-was-made)).*
 
+## Quick start (Linux, macOS or Windows)
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh        # install uv (Windows: see docs.astral.sh/uv)
+git clone https://github.com/taminggg1-cmyk/fed-news-forecasting-final.git
+cd fed-news-forecasting-final
+uv sync                                                # Python 3.13 and the exact package versions (uv.lock)
+uv run python scripts/download_data.py                 # the training data -> data/ (79 MB, checksums checked)
+uv run pytest -q                                       # offline tests, about 1 minute
+uv run python -m fed_news.studies.simple_model.run_simple_model          # Study 4, about 5 minutes
+uv run python -m fed_news.studies.networks.run_networks forecast --task T2 --device cpu   # Study 4 v2 tables
+```
+
+**Where is the data?** In `data/` after the download step (the code finds it there by itself; you can also set
+`FED_NEWS_DATA` to any folder). [`docs/DATA.md`](docs/DATA.md) describes every file, and
+[`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md) shows where each one is downloaded from, which file builds it and which
+file reads it next. **Start reading the code with `docs/CODE_GUIDE.md`.**
+
 ## Short answer
 
 News improves most models: Fed tone lowers the forecast error in 12 of 14 main comparisons (10 of 12 for the
@@ -25,8 +43,8 @@ meetings, and it is not confirmed on strict real-time data. Not significant does
 
 | Part | Code | Models | Tasks | Status |
 | --- | --- | --- | --- | --- |
-| Study 4 | `src/fed_news/studies/study4_haiku_logit/` | Simple model: penalised ordered logit | Per meeting | Exploratory study; design b4a00fd committed before the first run, results 7879a70 |
-| Study 4 version 2 | `src/fed_news/studies/study4_networks_v2/` | LSTM, GRU, TFT, tuned with Optuna inside each training window, 8 seeds | Per meeting and monthly | Dated amendment 6048e0d, written after the version 1 network results had been seen; results 1a31c73. Not a pre-registration |
+| Study 4 | `src/fed_news/studies/simple_model/` | Simple model: penalised ordered logit | Per meeting | Exploratory study; design b4a00fd committed before the first run, results 7879a70 |
+| Study 4 version 2 | `src/fed_news/studies/networks/` | LSTM, GRU, TFT, tuned with Optuna inside each training window, 8 seeds | Per meeting and monthly | Dated amendment 6048e0d, written after the version 1 network results had been seen; results 1a31c73. Not a pre-registration |
 
 **Shared design.** FOMC meetings and months, 2001–2026. Every forecast uses only information available before it:
 16 economic statistics as first published (ALFRED vintages), plus 8 market signals for meetings. Fed tone is read
@@ -121,9 +139,9 @@ each says where it came from.
 | Piece | Here | Came from (original repository) | Used for |
 | --- | --- | --- | --- |
 | Haiku prompt, reply parser, sentence masking | `features/haiku_prompt.py` | the Haiku labelling pilot and leak test (proofs of concept) | building the Haiku index |
-| Strictly real-time column list | `features/realtime.py` | Study 5 | the "strict data" rows |
-| Stance-column swap for a panel | `features/stance_panel.py` | Plan 5 | Haiku and ChronoBERT panels |
-| `standardise`, `nw_summary` | `models/neural.py`, `evaluation/stats_tests.py` | Plan 2, Study 5 | network inputs, the pooled test |
+| Strictly real-time column list | `features/strict_columns.py` | Study 5 | the "strict data" rows |
+| Tone-column swap for a panel | `features/swap_tone.py` | Plan 5 | Haiku and ChronoBERT panels |
+| `standardise`, `nw_summary` | `models/neural.py`, `evaluation/significance.py` | Plan 2, Study 5 | network inputs, the pooled test |
 | Haiku memory exam | `results/inputs_from_earlier/memory_exam.csv` | proofs of concept | the memory flag |
 | Untuned paper-settings forecasts | `results/inputs_from_earlier/paper_settings/` | Plan 2 | the "tuning matters" rows |
 
@@ -131,40 +149,42 @@ each says where it came from.
 
 ```
 src/fed_news/
-  collect/      raw sources -> dated tables (ALFRED, markets, FOMC calendar, Fed documents, labels)
-  features/     stance scores (ChronoBERT, Haiku) and the monthly / per-meeting feature panels
-  models/       ordered logit, ridge, the linear walk-forward engine, LSTM / GRU / TFT
-  evaluation/   metrics and tests (DM-HLN, Newey-West, McNemar, Holm)
-  studies/      study4_haiku_logit (simple model), study4_networks_v2 (tuned networks)
+  config.py     settings, and where the data folder is
+  download/     everything fetched from the internet (ALFRED, FRED, Fed documents, FOMC calendar, labels, indices)
+  features/     Fed tone (ChronoBERT, Haiku) and the training rows (per meeting, per month)
+  models/       ordered logit, ridge, the walk-forward loop, LSTM / GRU / TFT
+  evaluation/   accuracy numbers and significance tests (DM-HLN, Newey-West, McNemar, Holm)
+  studies/      simple_model/ (Study 4) and networks/ (Study 4 version 2): the runs that write results/
+scripts/        download_data.py: fetch and check the training data
 tests/          offline unit tests
 results/study4/ saved forecasts, metrics and test tables (each folder has a README)
 results/inputs_from_earlier/   the two input files listed above
 audit/          why the simple model beats the networks (script and output)
-docs/           design (with the version 2 amendment), Study 4 report, deviations, data description
+docs/           code guide, data description, design (with the version 2 amendment), Study 4 report, deviations
 ```
 
 ## Reproduce
 
-- Python 3.13; exact package versions in [`results/pip_freeze.txt`](results/pip_freeze.txt).
-- **Data.** The training data (feature panels, ChronoBERT and Haiku tone scores, Haiku's sentence labels, the Fed
-  documents, human labels, ALFRED vintages and market series) is attached to this repository's release
-  [`data-2026-10-18`](https://github.com/taminggg1-cmyk/fed-news-forecasting-final/releases/tag/data-2026-10-18) as
-  `final_study_data.zip` (79 MB zipped, 279 MB unzipped, 53 files). Unzip it and point `FED_NEWS_DATA` at the
-  `fed_news_data` folder (default `D:/fed_news`). Every file is described in [`docs/DATA.md`](docs/DATA.md), with
-  checksums in [`docs/DATA_MANIFEST.txt`](docs/DATA_MANIFEST.txt). API keys are not included.
-- From the repository root, with `PYTHONPATH=src`:
-  - `python -m pytest -q` runs the offline tests (about 1 minute).
-  - `python -m fed_news.studies.study4_haiku_logit.haiku_compare` reruns the simple model (CPU, about 5 minutes).
-  - `python -m fed_news.studies.study4_networks_v2.tune forecast --task T2 --device cpu` (and `--task T1`) rebuilds
-    the network ensembles, metrics and tests from the saved per-seed forecasts. Deleting those forecasts makes it
-    retrain the networks (hours; a GPU helps for the TFT). `tune tune` reruns the Optuna search.
-  - `python -m fed_news.studies.study4_haiku_logit.study4_sensitivity` and
-    `python -m fed_news.studies.study4_networks_v2.study4_pooled` rerun the exploratory checks.
-  - `python audit/why_simple_model_wins.py` reruns the diagnostics.
-- Checked on 2026-10-18: rerunning the simple model, both network evaluations, the pooled test and the
-  diagnostics in a fresh copy reproduced every file in `results/` and `audit/` byte for byte.
-- Building the Haiku index again (`python -m fed_news.features.haiku_index project|submit|collect`) calls the
-  Claude API (about 23.4 million tokens).
+- **Environment.** `uv sync` installs Python 3.13 and the exact package versions in `uv.lock` (the ones that produced
+  the results; full list in [`results/pip_freeze.txt`](results/pip_freeze.txt)). On Linux, PyPI's torch includes CUDA.
+- **Data.** `uv run python scripts/download_data.py` downloads `final_study_data.zip` (79 MB zipped, 279 MB unzipped,
+  53 files) from the release
+  [`data-2026-10-18`](https://github.com/taminggg1-cmyk/fed-news-forecasting-final/releases/tag/data-2026-10-18),
+  unpacks it into `data/` and checks every file against [`docs/DATA_MANIFEST.txt`](docs/DATA_MANIFEST.txt). It holds
+  the feature panels, ChronoBERT and Haiku tone scores, Haiku's sentence labels, the Fed documents, human labels,
+  ALFRED vintages and market series ([`docs/DATA.md`](docs/DATA.md)). API keys are not included.
+- **Runs** (`uv run python -m ...`; [`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md) lists every step):
+  - `fed_news.studies.simple_model.run_simple_model` reruns the simple model (CPU, about 5 minutes).
+  - `fed_news.studies.networks.run_networks forecast --task T2 --device cpu` (and `--task T1`) rebuilds the network
+    ensembles, metrics and tests from the saved per-seed forecasts. Deleting those forecasts makes it retrain the
+    networks (hours; a GPU helps for the TFT). `run_networks tune --trials 20` reruns the Optuna search.
+  - `fed_news.studies.simple_model.sensitivity_checks` and `fed_news.studies.networks.pooled_news_test` rerun the
+    exploratory checks; `uv run python audit/why_simple_model_wins.py` reruns the diagnostics.
+- **Checked on 2026-10-18** in a fresh copy set up with `uv sync` and `scripts/download_data.py`: rerunning the simple
+  model, both network evaluations, the pooled test and the diagnostics reproduced every file in `results/study4/`
+  and `audit/` byte for byte.
+- Building the tone scores again: `fed_news.features.chronobert_tone` (CUDA GPU) and
+  `fed_news.features.haiku_tone project|submit|collect` (Claude API, about 23.4 million tokens).
 
 ## How this was made
 

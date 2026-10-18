@@ -1,1 +1,1 @@
-"""Evaluation: metrics, tests (DM-HLN, Newey-West, McNemar, Holm), Clark-West."""
+"""Accuracy numbers and significance tests (Diebold-Mariano HLN, Newey-West, McNemar, Holm, Clark-West)."""

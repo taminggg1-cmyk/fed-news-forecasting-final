@@ -1,5 +1,11 @@
-"""Primary models (spec section 7): penalised ordered logit (T2), ridge on the change (T1),
-expanding-window penalty choice, move sizes, the class band, and the inertial Taylor rule."""
+"""MODEL: the simple models.
+
+The penalised ordered logit (cut / hold / hike) used for meetings, ridge regression for months, the penalty search, the
+class band and the Taylor rule.
+
+Details: Primary models (spec section 7): penalised ordered logit (T2), ridge on the change (T1),
+expanding-window penalty choice, move sizes, the class band, and the inertial Taylor rule.
+"""
 import numpy as np
 from scipy.optimize import minimize
 from scipy.special import expit, logit
@@ -16,11 +22,13 @@ class OrderedLogit:
 
     @staticmethod
     def _probs(X, beta, t1, t2):
+        """Probabilities of cut, hold and hike."""
         eta = X @ beta
         c1, c2 = expit(t1 - eta), expit(t2 - eta)
         return np.column_stack([c1, c2 - c1, 1.0 - c2])
 
     def _loss(self, w, X, y):
+        """Penalised negative log-likelihood and its gradient."""
         p = X.shape[1]
         beta, a, b = w[:p], w[p], w[p + 1]
         t1, t2 = a, a + np.exp(b)
@@ -40,6 +48,7 @@ class OrderedLogit:
         return loss, grad
 
     def fit(self, X, y):
+        """Fit slopes and thresholds by L-BFGS."""
         y = np.asarray(y, dtype=int)
         if not np.isfinite(X).all():
             raise ValueError("OrderedLogit.fit: non-finite values in X")
@@ -55,6 +64,7 @@ class OrderedLogit:
         return self
 
     def predict_proba(self, X):
+        """Probabilities of cut, hold and hike for each row of X."""
         proba = self._probs(X, self.beta_, self.t1_, self.t2_)
         if not np.isfinite(proba).all():
             raise ValueError("OrderedLogit produced non-finite probabilities")
@@ -62,20 +72,24 @@ class OrderedLogit:
 
 
 def expanding_folds(n: int, k: int = config.CV_FOLDS):
+    """Time-ordered CV folds: each trains on everything before its validation block."""
     edges = np.linspace(0, n, k + 2).astype(int)
     return [(np.arange(0, edges[i]), np.arange(edges[i], edges[i + 1])) for i in range(1, k + 1)]
 
 
 def ridge_score(model, X, y) -> float:
+    """Validation MSE of a ridge model."""
     return float(np.mean((model.predict(X) - y) ** 2))
 
 
 def logloss_score(model, X, y) -> float:
+    """Validation log loss of an ordered logit."""
     proba = np.clip(model.predict_proba(X), 1e-12, None)
     return float(-np.mean(np.log(proba[np.arange(len(y)), np.asarray(y, dtype=int)])))
 
 
 def choose_penalty(make, score, X, y, grid) -> float:
+    """The penalty in `grid` with the best mean score over the expanding folds."""
     best, best_score = grid[0], np.inf
     for value in grid:
         s = np.mean([score(make(value).fit(X[tr], y[tr]), X[va], y[va])
@@ -88,6 +102,7 @@ def choose_penalty(make, score, X, y, grid) -> float:
 
 
 def move_sizes(y_class: np.ndarray, y_change: np.ndarray) -> np.ndarray:
+    """Average size of a cut and of a hike in the training rows (hold = 0)."""
     sizes = np.array([-0.25, 0.0, 0.25])
     for k in (0, 2):
         if (y_class == k).any():
@@ -96,11 +111,13 @@ def move_sizes(y_class: np.ndarray, y_change: np.ndarray) -> np.ndarray:
 
 
 def classes_from_change(change: np.ndarray, band: float = config.CLASS_BAND) -> np.ndarray:
+    """cut / hold / hike from a forecast change, using a band of +-0.125 points."""
     change = np.asarray(change, dtype=float)
     return np.where(change > band, 2, np.where(change < -band, 0, 1))
 
 
 def taylor_predict(X_train: np.ndarray, y_train: np.ndarray, x_test: np.ndarray) -> float:
+    """Least-squares Taylor rule forecast for one row."""
     design = np.column_stack([np.ones(len(X_train)), X_train])
     coef = np.linalg.lstsq(design, y_train, rcond=None)[0]
     return float(coef[0] + x_test @ coef[1:])

@@ -1,5 +1,10 @@
-"""The Claude Haiku 5.5 labelling prompt, reply parser and sentence masking used to build the Haiku index
-(features/haiku_index.py). Copied unchanged from the earlier labelling pilot (fed_news/studies/poc/poc_llm_labels.py)
+"""BUILD helper: what is sent to Claude Haiku, and how its reply is read.
+
+The system prompt, the numbered sentence list, the reply parser, and the masking that hides years, months, numbers,
+names and events. Used by features/haiku_tone.py.
+
+Details: The Claude Haiku 5.5 labelling prompt, reply parser and sentence masking used to build the Haiku index
+(features/haiku_tone.py). Copied unchanged from the earlier labelling pilot (fed_news/studies/poc/poc_llm_labels.py)
 and leak test (fed_news/studies/poc/poc_haiku_leak.py) in fed-news-forecasting ad2183c.
 """
 import json
@@ -27,10 +32,12 @@ SYSTEM = (
 
 
 def batch_prompt(sentences: list[str]) -> str:
+    """Number the sentences, one per line, for one request."""
     return "\n".join(f"{i}. {s}" for i, s in enumerate(sentences, 1))
 
 
 def parse_labels(text: str, n: int) -> list[int]:
+    """Read Haiku's JSON reply into label codes (0 dovish, 1 hawkish, 2 neutral); raise if any is missing."""
     m = re.search(r"\{.*\}", text, re.S)
     if not m:
         raise ValueError("no JSON object in the reply")
@@ -45,6 +52,7 @@ def parse_labels(text: str, n: int) -> list[int]:
 
 
 def _client():
+    """Anthropic API client, using ANTHROPIC_API_KEY or <data>/secrets/anthropic_api_key.txt."""
     import anthropic
     key = os.environ.get("ANTHROPIC_API_KEY")
     path = config.SECRETS / "anthropic_api_key.txt"
@@ -73,6 +81,7 @@ _NUM = re.compile(r"\d[\d\-/.,]*\d|\d")
 
 
 def official_names(corpus: pd.DataFrame) -> set[str]:
+    """Surnames to mask: known Fed chairs plus every speaker in the corpus."""
     names = set(KNOWN_NAMES)
     for s in corpus["speaker"].dropna().unique():
         parts = [p for p in re.split(r"[\s,]+", s.strip()) if p and p.rstrip(".") not in ("Jr", "Sr")]
@@ -82,6 +91,7 @@ def official_names(corpus: pd.DataFrame) -> set[str]:
 
 
 def mask(sentence: str, names: set[str]) -> str:
+    """Hide events, names, years, months and numbers in a sentence."""
     s = _EVENTS.sub("[EVENT]", sentence.lower())
     if names:
         s = re.sub(r"\b(?:" + "|".join(sorted(map(re.escape, names))) + r")\b", "[NAME]", s)
