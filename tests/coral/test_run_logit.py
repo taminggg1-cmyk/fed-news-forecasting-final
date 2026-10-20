@@ -79,3 +79,23 @@ def test_comparison_row_signs_favour_the_better_news_model():
     row = rl.compare_row(preds(1.0, 0.4), preds(0.2, 0.8))
     assert row["clark_west_t"] > 0 and row["clark_west_p"] < 0.05
     assert row["dm_logloss_p"] < 0.05 and row["nw4_logloss_p"] < 0.05
+
+
+def test_evaluate_gives_the_table_primary_tests_controls_and_memory_flag(monkeypatch):
+    rng = np.random.default_rng(4)
+    n = 80
+    dates = pd.date_range("2001-01-01", periods=n, freq="MS")
+    y = rng.normal(5, 1, n)
+    cls = rng.integers(0, 3, n)
+    def preds():
+        p = rng.dirichlet([2, 2, 2], n)
+        return pd.DataFrame({"date": dates, "y_true": y, "y_pred": y + rng.normal(0, 0.4, n), "lag": y,
+                             "class_true": cls, "class_pred": p.argmax(1), "p_cut": p[:, 0], "p_hold": p[:, 1],
+                             "p_hike": p[:, 2]})
+    monkeypatch.setattr(rl, "_memory_indicators", lambda d: pd.DataFrame(
+        {"recalled": np.arange(n) % 2 == 0, "dated": True, "has_exam": True}, index=pd.DatetimeIndex(d)))
+    table, res = rl.evaluate({name: preds() for name in rl.specs()})
+    assert list(table["model"]) == list(rl.specs())
+    assert set(res["primary_holm_p"]) == {"S+M+Co", "S+M+Ho"}
+    assert {"placebo_cw_p", "shuffled_cw_p", "decision", "wording"} <= set(res["S+M+Ho"])
+    assert res["memory_flag_haiku"]["n"] == n

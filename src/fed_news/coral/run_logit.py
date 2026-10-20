@@ -113,25 +113,17 @@ def _same_as_study4(base: pd.DataFrame) -> bool:
     return bool(np.allclose(old[cols].to_numpy(float), base[cols].to_numpy(float), atol=1e-9))
 
 
-def run() -> dict:
-    """Run the seven versions, the tests, the controls and the memory flag; save forecasts, table and verdict."""
-    OUT.mkdir(parents=True, exist_ok=True)
-    pan, preds = panels(), {}
-    for name, (which, spec) in specs().items():
-        preds[name] = run_spec(pan[which], spec, config.TEST_START, proba=True)
-        preds[name].to_csv(OUT / f"preds_T2_{name}.csv", index=False)
+def evaluate(preds: dict[str, pd.DataFrame]) -> tuple[pd.DataFrame, dict]:
+    """The comparison table, the primary tests with Holm, the controls with the verdicts, and the Haiku memory flag
+    for one set of forecasts of the seven versions (all on the same meetings)."""
     base = preds["S+M"]
     rows = [{"model": "S+M", **metrics(base), "log_loss": float(log_loss(base).mean()),
              "brier": float(brier(base).mean())}]
     rows += [{"model": name, **compare_row(base, p)} for name, p in preds.items() if name != "S+M"]
     table = pd.DataFrame(rows)
-    table.to_csv(OUT / "comparison.csv", index=False)
     cw = dict(zip(table["model"], table.get("clark_west_p")))
     adj = primary_holm(cw["S+M+Co"], cw["S+M+Ho"])
-    res = {"n_test_meetings": int(len(base)), "first": str(base["date"].min().date()),
-           "last": str(base["date"].max().date()), "n_panel_rows": int(len(pan["H"])),
-           "s_m_equals_study4": _same_as_study4(base), "primary_clark_west_p": {k: cw[k] for k in READERS},
-           "primary_holm_p": adj}
+    res = {"primary_clark_west_p": {k: cw[k] for k in READERS}, "primary_holm_p": adj}
     for name, reader in READERS.items():
         tone = name.split("+")[-1]
         is_void = void(cw[f"placebo-{tone}"], cw[f"shuffled-{tone}"])
@@ -142,6 +134,22 @@ def run() -> dict:
     keep = ind["has_exam"].to_numpy()
     gain_ho, gain_co = ll["S+M"] - ll["S+M+Ho"], ll["S+M"] - ll["S+M+Co"]
     res["memory_flag_haiku"] = memory_flag(gain_ho[keep], gain_co[keep], ind["recalled"].to_numpy()[keep])
+    return table, res
+
+
+def run() -> dict:
+    """Run the seven versions, the tests, the controls and the memory flag; save forecasts, table and verdict."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    pan, preds = panels(), {}
+    for name, (which, spec) in specs().items():
+        preds[name] = run_spec(pan[which], spec, config.TEST_START, proba=True)
+        preds[name].to_csv(OUT / f"preds_T2_{name}.csv", index=False)
+    base = preds["S+M"]
+    table, ev = evaluate(preds)
+    table.to_csv(OUT / "comparison.csv", index=False)
+    res = {"n_test_meetings": int(len(base)), "first": str(base["date"].min().date()),
+           "last": str(base["date"].max().date()), "n_panel_rows": int(len(pan["H"])),
+           "s_m_equals_study4": _same_as_study4(base), **ev}
     res["study4_reference"] = pd.read_csv(config.RESULTS / "study4" / "comparison_T2.csv").set_index("model")[
         ["log_loss", "accuracy", "dm_logloss_p", "clark_west_p"]].to_dict("index")
     (OUT / "verdict.json").write_text(json.dumps(res, indent=2, default=str))
