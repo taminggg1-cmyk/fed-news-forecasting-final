@@ -246,3 +246,25 @@ prompt and parsing are replaced by the following; everything else in section 5 s
 - Descriptive check: the share of sentences where the most probable class equals the Study 4 label (ties count
   as a mismatch).
 - The output projection stays at 15 tokens per sentence and the limit at 35,000,000 tokens.
+
+## 14. Amendment 2 (2026-10-20, before any training run or API call; found by the code review)
+
+**Problem.** With CORAL the two logits of a row differ only by b_1 - b_2, so P(middle class) can never exceed
+s((b_1 - b_2)/2) - s(-(b_1 - b_2)/2). With the section 2 start values (1.0, 0.5) that cap is 0.124. ChronoBERT
+fine-tuning (learning rate 2e-5, at most about 456 AdamW steps per classifier year) can move a bias by at most about
+0.009, so the gap would stay at 0.5 and P(neutral) would stay below 0.124 for every sentence, although neutral is
+the largest label class (44.8% of the human labels). Networks tuned at small learning rates would meet the same cap
+for "hold" (about two thirds of the meetings).
+
+**Change (replaces the bias start values of section 2; everything else stays):**
+
+- Biases start at the logits of the training rows' cumulative class shares, b_k = logit(share of rows with
+  rank >= k), each share clipped to [0.001, 0.999]: the intercept-only ordered fit, the same start values that
+  models.linear.OrderedLogit uses. This applies to ChronoBERT-CORAL (the year's training labels) and to the CORAL
+  networks (the rows of each fit: every tuning fold and every walk-forward refit).
+- The CORAL biases are not weight-decayed (the thresholds are not penalised, as in OrderedLogit).
+- ChronoBERT-CORAL only: the two biases get their own learning rate, 1e-2, so the thresholds can be learned within
+  the fine-tuning budget; every other parameter keeps 2e-5. The networks keep their tuned learning rate for all
+  parameters.
+- The section 8 check 1 (agreement with coral-pytorch) still covers the loss, levels and prediction rule; the head's
+  start values now differ from the package's by design.
