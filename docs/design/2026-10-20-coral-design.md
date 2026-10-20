@@ -268,3 +268,30 @@ for "hold" (about two thirds of the meetings).
   parameters.
 - The section 8 check 1 (agreement with coral-pytorch) still covers the loss, levels and prediction rule; the head's
   start values now differ from the package's by design.
+
+## 15. Amendment 3 (2026-10-21): test from 2010. Declared after the full-sample results, before any result by period
+
+**Why.** The user's hypothesis: ChronoBERT classifiers of the early classifier years are too weak to carry the
+signal, so the early meetings dilute any news gain. The evidence for weak early classifiers comes from the labels,
+not from forecast results: the out-of-time hawkish-vs-dovish AUC of the Study 4 classifiers was 0.648 for
+2000-2004 (2001: 0.526, 2003: 0.497) and 0.75-0.84 later; the ChronoBERT-CORAL holdout accuracy was 0.50-0.59 for
+classifier years 2000-2013. The user chose the start 2010-01-01.
+
+**Known cost.** From 2010-01-01 the test has 135 meetings (of 212) and 32 rate moves (11 cuts, 21 hikes; of 72),
+because 2009-2015 was almost all holds at the zero lower bound. Fewer moves means less power.
+
+**What is tested.** This is a further attempt. It does not replace sections 6 and 7: their full-sample results
+stand and are reported first.
+
+- Nothing is refit. The saved walk-forward forecasts (each made only from data before its meeting) are scored on
+  the test meetings dated 2010-01-01 or later. This equals training up to the end of 2009 and forecasting from 2010
+  with the same walk-forward. Every version must have the same meetings in the subset.
+- Ordered logit: the 7 versions of section 6. Primary: one-sided Clark-West, S+M+Co and S+M+Ho against S+M, Holm
+  over the 2. The void rule, the wording of section 9, the other statistics and the Haiku memory flag are
+  unchanged, all computed on the subset.
+- Networks: the section 7 primary tests (Newey-West, lags 8, on the log-loss difference; Holm over the 6) and the
+  placebo reading, on the scheduled meetings dated 2010-01-01 or later; all meetings also reported.
+- Outputs: results/coral/logit_from2010/ and results/coral/networks_from2010/.
+- Disclosure: the start year was chosen after the full-sample p-values were known, but before any result by
+  period was computed or seen. The attempt is listed in ATTEMPTS.md with its result, whatever it is. Any other
+  start year would be another attempt, declared in this document before it is computed.
