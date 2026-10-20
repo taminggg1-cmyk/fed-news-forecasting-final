@@ -28,7 +28,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest==9.1.1"]
+dev = ["pytest==9.1.1", "coral-pytorch==1.4.0"]  # coral-pytorch: test oracle for the CORAL study
 
 [build-system]
 requires = ["hatchling"]
