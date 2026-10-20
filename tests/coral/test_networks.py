@@ -49,3 +49,21 @@ def test_fit_validate_coral_reports_best_epoch_and_log_loss():
     networks.fit_fixed_coral(refit, X, ranks, lr=1e-2, epochs=epoch, device="cpu", batch_size=32, seed=3,
                              weight_decay=1e-4)
     assert abs(networks.val_log_loss(networks.predict_levels(refit, Xv, "cpu"), rv) - best) < 1e-6
+
+
+def test_fits_start_the_biases_at_the_training_shares():
+    X, ranks = _ordinal_data(200)
+    model = networks.build_coral_model("lstm", 2, 8, 0.0, seed=0)
+    networks.fit_fixed_coral(model, X, ranks, lr=1e-3, epochs=0, device="cpu")
+    shares = np.array([(ranks >= 1).mean(), (ranks >= 2).mean()])
+    assert np.allclose(model.head.bias.detach().numpy(), np.log(shares / (1 - shares)), atol=1e-5)
+
+
+def test_middle_class_is_not_capped_at_small_learning_rates():
+    rng = np.random.default_rng(0)
+    X = rng.normal(size=(300, 4, 2)).astype(np.float32)
+    ranks = np.where(X[:, -1, 0] > 1.0, 2, np.where(X[:, -1, 0] < -1.0, 0, 1))  # about 70% middle
+    model = networks.build_coral_model("gru", 2, 8, 0.0, seed=0)
+    networks.fit_fixed_coral(model, X, ranks, lr=1e-4, epochs=3, device="cpu")
+    p_mid = core.class_probs(networks.predict_levels(model, X, "cpu"))[:, 1]
+    assert p_mid.max() > 0.5  # the start values (1.0, 0.5) would cap it at 0.124

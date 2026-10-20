@@ -79,3 +79,21 @@ def test_run_refuses_to_train_without_cuda(monkeypatch):
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
     with pytest.raises(SystemExit, match="CUDA"):
         cc.run()
+
+
+def test_optimizer_gives_the_biases_their_own_rate_and_no_decay():
+    net, _ = _tiny()
+    opt = cc.make_optimizer(net, lr=2e-5)
+    bias = [g for g in opt.param_groups if any(p is net.head.bias for p in g["params"])][0]
+    rest = [g for g in opt.param_groups if g is not bias][0]
+    assert bias["lr"] == 1e-2 and bias["weight_decay"] == 0.0
+    assert rest["lr"] == 2e-5 and rest["weight_decay"] == 0.01
+
+
+def test_neutral_is_not_capped_after_fine_tuning_at_the_real_learning_rate():
+    net, tok = _tiny()
+    sents = ["raise rates", "cut rates", "the meeting", "the rates"] * 15
+    ranks = np.array([2, 0, 1, 1] * 15)
+    cc.fine_tune(net, tok, sents, ranks, seed=0, device="cpu")  # Study 4 settings: lr 2e-5, 3 epochs
+    p_neutral = core.class_probs(cc.score(net, tok, sents, "cpu"))[:, 1]
+    assert p_neutral.max() > 0.3  # the start values (1.0, 0.5) would cap it at 0.124

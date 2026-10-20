@@ -75,3 +75,22 @@ def test_linear_coral_equals_ordered_logit():
     p_logit = OrderedLogit(0.0).fit(X, y).predict_proba(X)
     assert np.abs(p_coral - p_logit).max() < 0.02
     assert core.biases_ordered(head)
+
+
+def test_init_biases_sets_logits_of_cumulative_training_shares():
+    head = core.CoralHead(4)
+    core.init_biases(head, [0] * 30 + [1] * 45 + [2] * 25)
+    assert np.allclose(head.bias.detach().numpy(), np.log(np.array([0.70, 0.25]) / np.array([0.30, 0.75])), atol=1e-6)
+    core.init_biases(head, [1] * 10)  # no rank 2 at all: share 0 clipped to 0.001
+    assert np.isclose(head.bias.detach().numpy()[1], np.log(0.001 / 0.999), atol=1e-5)
+
+
+def test_param_groups_keep_coral_biases_free_of_weight_decay():
+    model = torch.nn.Sequential(torch.nn.Linear(3, 4))
+    model.head = core.CoralHead(4)
+    groups = core.param_groups(model, lr=1e-3, weight_decay=0.1, bias_lr=1e-2)
+    bias_group = [g for g in groups if any(p is model.head.bias for p in g["params"])]
+    assert len(bias_group) == 1 and bias_group[0]["weight_decay"] == 0.0 and bias_group[0]["lr"] == 1e-2
+    other = [g for g in groups if g is not bias_group[0]][0]
+    assert other["weight_decay"] == 0.1 and other["lr"] == 1e-3
+    assert sum(len(g["params"]) for g in groups) == len(list(model.parameters()))

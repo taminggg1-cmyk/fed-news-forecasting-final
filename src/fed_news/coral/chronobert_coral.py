@@ -12,7 +12,8 @@ Run:     python -m fed_news.coral.chronobert_coral
 Details: CORAL study, section 4. For each classifier year y (2000 onward; documents from 1994-1999 use y = 2000),
 fine-tune ChronoBERT vintage y-1 (clipped to 1999-2024) on human labels dated before y, seeds 0, 1, 2, with the
 Study 4 settings (learning rate 2e-5, 3 epochs, batch 16, max length 256, AdamW weight decay 0.01, fp16 autocast,
-gradient clipping 1.0). Labels are re-coded to ranks dovish 0 < neutral 1 < hawkish 2; the head is a CORAL layer on
+gradient clipping 1.0); design amendment 2: the CORAL biases start at the logits of the training labels'
+cumulative shares and train at learning rate 1e-2 without weight decay. Labels are re-coded to ranks dovish 0 < neutral 1 < hawkish 2; the head is a CORAL layer on
 the mean of the token vectors and the loss is the CORAL loss. The seeds' level probabilities are averaged; sentence
 tone = P(hawkish) - P(dovish). Finished years are reused only if their fingerprint matches, so an interrupted run
 resumes.
@@ -28,7 +29,8 @@ import torch.nn as nn
 from transformers import AutoModel, AutoTokenizer
 
 from fed_news import config
-from fed_news.coral.core import TONE_RANK, CoralHead, biases_ordered, coral_loss, level_probs, levels, predict_rank
+from fed_news.coral.core import TONE_RANK, CoralHead, biases_ordered, coral_loss, init_biases, level_probs, levels
+from fed_news.coral.core import param_groups, predict_rank
 from fed_news.coral.core import tone_from_levels
 from fed_news.download.fed_documents import build_corpus
 from fed_news.download.stance_labels import LABELS, load_labels
@@ -39,6 +41,7 @@ MODELS = config.DATA / "chronobert_coral_models"
 WORK = config.DATA / "coral"
 OUT_PATH = WORK / "doc_stance_chronobert_coral.pkl"
 RESULTS = config.RESULTS / "coral"
+BIAS_LR = 1e-2  # design amendment 2: the two thresholds get their own learning rate
 LABEL_ORDER = "dovish 0 < neutral 1 < hawkish 2 (levels: dovish (0,0), neutral (1,0), hawkish (1,1))"
 
 
@@ -71,13 +74,20 @@ def _batches(tok, texts, size, order, device):
         yield j, enc["input_ids"].to(device), enc["attention_mask"].to(device)
 
 
+def make_optimizer(net, lr: float = config.STANCE_LR):
+    """AdamW: the CORAL biases at BIAS_LR without weight decay; every other parameter at `lr`, weight decay 0.01."""
+    return torch.optim.AdamW(param_groups(net, lr, 0.01, bias_lr=BIAS_LR), lr=lr)
+
+
 def fine_tune(net, tok, sents: list[str], ranks, seed: int, device: str, epochs: int = config.STANCE_EPOCHS,
               lr: float = config.STANCE_LR, batch: int = config.STANCE_BATCH):
-    """AdamW on the CORAL loss, shuffled mini-batches, gradient clipping 1.0, fp16 autocast on the GPU."""
+    """AdamW on the CORAL loss, shuffled mini-batches, gradient clipping 1.0, fp16 autocast on the GPU; the biases
+    start at the training labels' cumulative shares (design amendment 2)."""
     rng = np.random.default_rng(seed)
     amp = device == "cuda"
+    init_biases(net.head, ranks)
     net.to(device)
-    opt = torch.optim.AdamW(net.parameters(), lr=lr, weight_decay=0.01)
+    opt = make_optimizer(net, lr)
     scaler = torch.amp.GradScaler(enabled=amp)
     lv = levels(ranks).to(device)
     for _ in range(epochs):
@@ -138,7 +148,8 @@ def train_and_score(train: pd.DataFrame, texts: list[str], vintage: int, seed: i
     ordered = biases_ordered(net.head)
     if save_dir is not None:
         settings = {"lr": config.STANCE_LR, "epochs": config.STANCE_EPOCHS, "batch": config.STANCE_BATCH,
-                    "max_length": config.STANCE_MAXLEN, "weight_decay": 0.01, "loss": "CORAL"}
+                    "max_length": config.STANCE_MAXLEN, "weight_decay": 0.01, "loss": "CORAL",
+                    "bias_lr": BIAS_LR, "bias_start": "logits of the training labels' cumulative shares"}
         save_model(net, tok, save_dir, {**(info or {}), "base_model": name, "vintage": vintage, "seed": seed,
                                         "n_train": len(train), "settings": settings})
     # Free everything per seed so repeated calls do not accumulate memory.

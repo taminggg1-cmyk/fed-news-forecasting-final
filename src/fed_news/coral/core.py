@@ -31,6 +31,27 @@ class CoralHead(nn.Module):
         return self.weight(h) + self.bias
 
 
+def init_biases(head: CoralHead, ranks) -> None:
+    """Design amendment 2: start the biases at the logits of the cumulative class shares of the training rows,
+    b_k = logit(share of rank >= k), shares clipped to [0.001, 0.999] (the intercept-only ordered fit, the start
+    values of models.linear.OrderedLogit). With (1.0, 0.5) the gap b_1 - b_2 = 0.5 caps P(middle class) at 0.124
+    until the biases move, which small learning rates barely allow."""
+    r = np.asarray(ranks, dtype=int)
+    n_levels = head.bias.numel()
+    shares = np.clip([(r >= k).mean() for k in range(1, n_levels + 1)], 1e-3, 1 - 1e-3)
+    with torch.no_grad():
+        head.bias.copy_(torch.as_tensor(np.log(shares / (1 - shares)), dtype=head.bias.dtype))
+
+
+def param_groups(model: nn.Module, lr: float, weight_decay: float, bias_lr: float | None = None) -> list[dict]:
+    """Optimizer groups: the CORAL biases (thresholds) without weight decay, at `bias_lr` (default `lr`); every
+    other parameter at `lr` with `weight_decay`."""
+    bias = model.head.bias
+    rest = [p for p in model.parameters() if p is not bias]
+    return [{"params": rest, "lr": lr, "weight_decay": weight_decay},
+            {"params": [bias], "lr": lr if bias_lr is None else bias_lr, "weight_decay": 0.0}]
+
+
 def levels(ranks, n_classes: int = K) -> torch.Tensor:
     """Binary level targets 1{rank >= k}, k = 1..K-1, as a float tensor of shape (rows, K - 1)."""
     r = torch.as_tensor(np.asarray(ranks), dtype=torch.long).reshape(-1, 1)

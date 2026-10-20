@@ -5,12 +5,14 @@ Used by coral/run_networks.py.
 Details: CORAL study, section 7. The networks are the existing ones (models/neural.py, models/tft.py) with their final
 linear layer replaced by a CORAL head, so they output two level logits instead of one rate change. Training uses
 the CORAL loss on the decision ranks (cut 0, hold 1, hike 2); tuning and early stopping use the validation log loss
-of the three class probabilities. The optimiser, mini-batching and shuffling match models/neural.py.
+of the three class probabilities. The optimiser, mini-batching and shuffling match models/neural.py, except (design
+amendment 2) that every fit starts the CORAL biases at the training rows' cumulative class shares and does not
+weight-decay them.
 """
 import numpy as np
 import torch
 
-from fed_news.coral.core import CoralHead, class_probs, coral_loss, level_probs, levels
+from fed_news.coral.core import CoralHead, class_probs, coral_loss, init_biases, level_probs, levels, param_groups
 from fed_news.models.neural import build_model
 
 
@@ -59,9 +61,10 @@ def predict_levels(model, X, device: str) -> np.ndarray:
 def fit_fixed_coral(model, X, ranks, lr: float, epochs: int, device: str, batch_size: int = 32, seed: int = 0,
                     weight_decay: float = 0.0):
     """Mini-batch Adam on the CORAL loss for a fixed number of epochs (the final fit at each refit)."""
+    init_biases(model.head, ranks)
     model.to(device).train()
     xt, lv = _tensor(X, device), levels(ranks).to(device)
-    opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    opt = torch.optim.Adam(param_groups(model, lr, weight_decay), lr=lr)
     rng = np.random.default_rng(seed)
     for _ in range(epochs):
         _epoch(model, opt, xt, lv, batch_size, rng, device)
@@ -71,9 +74,10 @@ def fit_fixed_coral(model, X, ranks, lr: float, epochs: int, device: str, batch_
 def fit_validate_coral(model, X, ranks, X_val, ranks_val, lr: float, weight_decay: float, batch_size: int,
                        max_epochs: int, patience: int, device: str, seed: int = 0) -> tuple[float, int]:
     """Tuning: train on the fold's rows, stop early on the validation log loss; return the best value and epoch."""
+    init_biases(model.head, ranks)
     model.to(device)
     xt, lv, xv = _tensor(X, device), levels(ranks).to(device), _tensor(X_val, device)
-    opt = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    opt = torch.optim.Adam(param_groups(model, lr, weight_decay), lr=lr)
     rng = np.random.default_rng(seed)
     best, best_epoch, wait = np.inf, 1, 0
     for epoch in range(1, max_epochs + 1):
