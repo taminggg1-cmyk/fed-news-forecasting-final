@@ -227,3 +227,22 @@ All are automated tests in tests/coral/ and must pass before section 10 step 4.
 Module and function names inside src/fed_news/coral/; how ChronoBERT-CORAL and the CORAL networks reuse the
 existing code (import or copy, as long as the existing files are not changed); job scheduling between CPU and
 GPU; file formats of intermediate outputs.
+
+## 13. Amendment 1 (2026-10-20, before any code, training run or API call)
+
+The user asked whether the section 5 prompt is unnatural. It is: "the probability that the sentence is not
+dovish" is an odd question for a language model and invites B > A. The user agreed to replace it. Section 5's
+prompt and parsing are replaced by the following; everything else in section 5 stays.
+
+- System prompt: the Study 4 definitions of H, D and N, unchanged, followed by:
+  "For each sentence give three whole numbers from 0 to 100 that add up to 100: the probabilities that the
+  sentence is dovish (D), neutral (N) and hawkish (H). Judge only the text of each sentence. Reply with one JSON
+  object mapping each sentence number to [D, N, H], and nothing else."
+- Parsing: three numbers in [0, 100] per sentence. If they do not add up to 100 but their sum is positive, they
+  are divided by their sum (the count is reported). A reply with a missing sentence, a negative number or a zero
+  sum fails the request (resent once, as before).
+- Levels in CORAL form: P(r >= 1) = (N + H) / 100, P(r >= 2) = H / 100. These are always ordered, so the
+  section 5 inconsistency count no longer applies. Sentence tone = H/100 - D/100 = P(hawkish) - P(dovish).
+- Descriptive check: the share of sentences where the most probable class equals the Study 4 label (ties count
+  as a mismatch).
+- The output projection stays at 15 tokens per sentence and the limit at 35,000,000 tokens.
