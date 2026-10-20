@@ -4,8 +4,9 @@ Used by every other module in fed_news/coral/.
 
 Details: CORAL study, section 2 (Cao, Mirjalili and Raschka 2020, arXiv:1901.07884). K = 3 ordered classes become
 K - 1 = 2 binary levels y_k = 1{rank >= k}: rank 0 = (0, 0), 1 = (1, 0), 2 = (1, 1). One weight vector without a
-bias is shared by both levels; each level has its own bias, initialised to (1.0, 0.5) as in the authors' package
-coral-pytorch. The loss is the sum of the two binary cross-entropies (equal task weights), averaged over rows.
+bias is shared by both levels; each level has its own bias. CoralHead starts the biases at (1.0, 0.5) as in the
+authors' package coral-pytorch, but every fit in this study first resets them with init_biases to the training rows'
+cumulative class shares (design amendment 2). The loss is the sum of the two binary cross-entropies (equal task weights), averaged over rows.
 """
 import numpy as np
 import torch

@@ -167,3 +167,9 @@ def test_collect_resends_failures_once_then_writes_tone_and_flags_unlabelled(mon
     assert np.isclose(out.loc["a", "stance"], np.mean([0.2, -0.5, 0.8])) and out.loc["b", "n_sent"] == 0
     res = json.loads((tmp_path / "results" / "haiku_index.json").read_text())
     assert res["n_unlabelled"] == 3 and res["share_unlabelled"] == 0.5 and "warning" in res
+
+
+
+def test_parse_rejects_a_number_too_large_for_a_float():
+    with pytest.raises(ValueError):
+        ho.parse_probs('{"1": [1' + '0' * 400 + ', 1, 1]}', 1)

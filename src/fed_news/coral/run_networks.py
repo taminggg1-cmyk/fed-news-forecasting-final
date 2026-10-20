@@ -203,18 +203,34 @@ def _write_json(path, obj) -> None:
     os.replace(tmp, path)
 
 
-def _check_dates(settings: dict, df: pd.DataFrame, arch: str, arm: str) -> None:
-    """Each saved tuning point must still fall on the date it was tuned on (the panel must not have changed)."""
+def panel_fingerprint(df: pd.DataFrame, cols, arch: str) -> str:
+    """Fingerprint of everything a tuning run reads: the architecture, the column names, the dates, the input values
+    and the decision classes. Saved with every tuned point, so settings tuned on another tone file are refused."""
+    h = hashlib.sha1(f"{arch}|{'|'.join(cols)}".encode())
+    h.update(np.ascontiguousarray(df.index.asi8).tobytes())
+    h.update(np.ascontiguousarray(df[list(cols)].to_numpy(float)).tobytes())
+    h.update(np.ascontiguousarray(df["y_class"].to_numpy(np.int64)).tobytes())
+    return h.hexdigest()[:16]
+
+
+def _check_dates(settings: dict, df: pd.DataFrame, arch: str, arm: str, cols=None) -> None:
+    """Each saved tuning point must still fall on the date it was tuned on and, when `cols` is given, come from a
+    panel with the same values (same fingerprint)."""
+    fp = panel_fingerprint(df, cols, arch) if cols is not None else None
     for pt, s in settings.items():
         if pt >= len(df) or str(df.index[pt].date()) != s["date"]:
             now = df.index[pt].date() if pt < len(df) else "beyond the panel"
             raise ValueError(f"{arch} {arm}: tuning point {pt} is {now} now, {s['date']} when tuned")
+        if fp is not None and s.get("panel") != fp:
+            raise ValueError(f"{arch} {arm}: tuning point {pt} was tuned on a panel with other values "
+                             f"(fingerprint {s.get('panel')} then, {fp} now); delete the settings and retune")
 
 
-def _load_settings(arch: str, arm: str, df: pd.DataFrame) -> dict:
-    """Saved settings keyed by row index, checked against the panel's dates; every tuning point must be tuned."""
+def _load_settings(arch: str, arm: str, df: pd.DataFrame, cols=None) -> dict:
+    """Saved settings keyed by row index, checked against the panel's dates (and values, given `cols`); every
+    tuning point must be tuned."""
     settings = {int(k): v for k, v in json.loads(_settings_path(arch, arm).read_text()).items()}
-    _check_dates(settings, df, arch, arm)
+    _check_dates(settings, df, arch, arm, cols)
     missing = sorted(set(tuning_points(df.index)) - set(settings))
     if missing:
         raise ValueError(f"{arch} {arm}: tuning incomplete, missing tuning points {missing}")
@@ -227,14 +243,18 @@ def settings_hash(settings: dict) -> str:
 
 
 def seed_forecast(df: pd.DataFrame, cols, arch: str, settings: dict, seed: int, device: str, path) -> pd.DataFrame:
-    """One seed's walk-forward forecasts: reused from `path` only if they were made with these exact settings."""
+    """One seed's walk-forward forecasts: reused from `path` only if they were made with these exact settings and
+    cover every test meeting; written atomically."""
     h = settings_hash(settings)
+    n_test = int((df.index >= pd.Timestamp(config.TEST_START)).sum())
     if path.exists():
-        cached = pd.read_csv(path, parse_dates=["date"])
-        if "settings_hash" in cached and (cached["settings_hash"].astype(str) == h).all():
+        cached = pd.read_csv(path, parse_dates=["date"], dtype={"settings_hash": str})
+        if len(cached) == n_test and "settings_hash" in cached and (cached["settings_hash"] == h).all():
             return cached
     out = run_tuned_coral(df, cols, arch, settings, seed, device, config.TEST_START).assign(settings_hash=h)
-    out.to_csv(path, index=False)
+    tmp = path.with_name(path.name + ".tmp")
+    out.to_csv(tmp, index=False)
+    os.replace(tmp, path)
     return out
 
 
@@ -247,13 +267,15 @@ def tune_all(pan: dict, device: str, n_trials: int = N_TRIALS, archs=ARCHS, arms
             df = pan[which]
             path = _settings_path(arch, arm)
             done = {int(k): v for k, v in json.loads(path.read_text()).items()} if path.exists() else {}
-            _check_dates(done, df, arch, arm)
+            _check_dates(done, df, arch, arm, cols)
+            fp = panel_fingerprint(df, cols, arch)
             X, ranks = df[cols].to_numpy(float), df["y_class"].to_numpy(int)
             for pt in tuning_points(df.index):
                 if pt in done:
                     continue
                 t0 = time.time()
-                done[pt] = tune_point_coral(X, ranks, pt, arch, device, n_trials) | {"date": str(df.index[pt].date())}
+                done[pt] = tune_point_coral(X, ranks, pt, arch, device, n_trials) | {"date": str(df.index[pt].date()),
+                                                                                     "panel": fp}
                 _write_json(path, done)
                 print(f"{arch} {arm} {df.index[pt].date()}: {done[pt]} ({time.time() - t0:.0f}s)", flush=True)
 
@@ -292,8 +314,9 @@ def time_trial(pan: dict, device: str, archs=ARCHS) -> dict:
         fits[arch] = time.time() - t0
     hours = {a: projected_hours(secs[a], fits[a], len(pts), n_test) for a in archs}
     res = {"device": device, "seconds_per_trial_at_last_point": secs, "seconds_per_final_fit_50_epochs": fits,
-           "hours_upper_bound_per_arch": hours,
-           "hours_upper_bound_total_sequential": float(sum(hours.values())),
+           "note": "estimate from 3 trials and one 50-epoch fit per architecture, not a bound",
+           "hours_estimate_per_arch": hours,
+           "hours_estimate_total_sequential": float(sum(hours.values())),
            "ask_user": bool(sum(hours.values()) > 36)}
     OUT.mkdir(parents=True, exist_ok=True)
     _write_json(OUT / "timing.json", res)
@@ -332,7 +355,7 @@ def forecast_all(pan: dict, device: str, archs=ARCHS) -> pd.DataFrame:
             if not _settings_path(arch, arm).exists():
                 continue
             df = pan[which]
-            settings = _load_settings(arch, arm, df)
+            settings = _load_settings(arch, arm, df, cols)
             frames = []
             for seed in SEEDS:
                 f = seed_forecast(df, cols, arch, settings, seed, device, OUT / f"preds_{arch}_{arm}_seed{seed}.csv")

@@ -58,7 +58,7 @@ def _number(x, i: int) -> float:
         raise ValueError(f"sentence {i}: {x!r} is not a number")
     try:
         return float(x)
-    except ValueError:
+    except (ValueError, OverflowError):
         raise ValueError(f"sentence {i}: {x!r} is not a number") from None
 
 

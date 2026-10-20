@@ -69,9 +69,10 @@ def test_fingerprint_marks_coral_runs():
 def test_one_vintage_trains_scores_and_saves_on_the_gpu(tmp_path):
     train = pd.DataFrame({"sentence": ["inflation pressures warrant higher rates", "the economy is weak",
                                        "the committee met today"] * 20, "label": [1, 0, 2] * 20})
-    lp, ordered = cc.train_and_score(train, ["rates should rise", "growth is slowing"], 1999, 0, tmp_path / "s0")
+    lp, ordered, biases = cc.train_and_score(train, ["rates should rise", "growth is slowing"], 1999, 0,
+                                             tmp_path / "s0")
     assert lp.shape == (2, 2) and ((lp >= 0) & (lp <= 1)).all()
-    assert isinstance(ordered, bool)
+    assert isinstance(ordered, bool) and len(biases) == 2
     assert (tmp_path / "s0" / "encoder").is_dir() and (tmp_path / "s0" / "coral_head.pt").exists()
 
 
@@ -97,3 +98,26 @@ def test_neutral_is_not_capped_after_fine_tuning_at_the_real_learning_rate():
     cc.fine_tune(net, tok, sents, ranks, seed=0, device="cpu")  # Study 4 settings: lr 2e-5, 3 epochs
     p_neutral = core.class_probs(cc.score(net, tok, sents, "cpu"))[:, 1]
     assert p_neutral.max() > 0.3  # the start values (1.0, 0.5) would cap it at 0.124
+
+
+
+def test_biases_actually_move_at_their_own_learning_rate():
+    net, tok = _tiny()
+    sents = ["raise rates", "cut rates", "the meeting", "the rates"] * 15
+    ranks = np.array([2, 0, 1, 1] * 15)
+    core.init_biases(net.head, ranks)
+    start = net.head.bias.detach().clone()
+    cc.fine_tune(net, tok, sents, ranks, seed=0, device="cpu")  # 3 epochs, 12 steps
+    assert (net.head.bias.detach() - start).abs().max() > 0.02  # at lr 2e-5 they could move at most 0.00024
+
+
+def test_year_report_shows_mean_class_probabilities_and_biases():
+    lp = np.array([[0.9, 0.2], [0.4, 0.1], [0.8, 0.7]])
+    truth = np.array([1, 0, 2])
+    runs = [(lp, True, [1.2, -0.8]), (lp, False, [0.3, 0.5])]
+    rep = cc.year_report(lp[:2], truth[:2], lp, runs)
+    p = core.class_probs(lp)
+    assert np.isclose(rep["mean_p_neutral_all"], p[:, 1].mean())
+    assert np.isclose(rep["mean_p_dovish_holdout"], p[:2, 0].mean())
+    assert rep["biases_by_seed"] == [[1.2, -0.8], [0.3, 0.5]] and rep["n_seeds_biases_unordered"] == 1
+    assert {"accuracy", "macro_f1", "ordinal_mae"} <= set(rep)

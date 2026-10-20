@@ -30,7 +30,7 @@ from transformers import AutoModel, AutoTokenizer
 
 from fed_news import config
 from fed_news.coral.core import TONE_RANK, CoralHead, biases_ordered, coral_loss, init_biases, level_probs, levels
-from fed_news.coral.core import param_groups, predict_rank
+from fed_news.coral.core import class_probs, param_groups, predict_rank
 from fed_news.coral.core import tone_from_levels
 from fed_news.download.fed_documents import build_corpus
 from fed_news.download.stance_labels import LABELS, load_labels
@@ -136,16 +136,16 @@ def load_model(path: Path):
 
 
 def train_and_score(train: pd.DataFrame, texts: list[str], vintage: int, seed: int, save_dir: Path | None,
-                    info: dict | None = None) -> tuple[np.ndarray, bool]:
+                    info: dict | None = None) -> tuple[np.ndarray, bool, list[float]]:
     """Fine-tune one CORAL classifier (one seed) on `train` on the GPU, save it, and return the level probabilities
-    for `texts` and whether its biases are ordered."""
+    for `texts`, whether its biases are ordered, and the biases."""
     torch.manual_seed(seed)
     name = model_name(vintage)
     tok = AutoTokenizer.from_pretrained(name)
     net = StanceNetCoral(AutoModel.from_pretrained(name)).cuda()
     fine_tune(net, tok, list(train["sentence"]), to_ranks(train["label"]), seed, "cuda")
     lp = score(net, tok, texts, "cuda")
-    ordered = biases_ordered(net.head)
+    ordered, biases = biases_ordered(net.head), net.head.bias.detach().cpu().tolist()
     if save_dir is not None:
         settings = {"lr": config.STANCE_LR, "epochs": config.STANCE_EPOCHS, "batch": config.STANCE_BATCH,
                     "max_length": config.STANCE_MAXLEN, "weight_decay": 0.01, "loss": "CORAL",
@@ -156,7 +156,7 @@ def train_and_score(train: pd.DataFrame, texts: list[str], vintage: int, seed: i
     del net, tok
     gc.collect()
     torch.cuda.empty_cache()
-    return lp, ordered
+    return lp, ordered, biases
 
 
 def combine_seeds(lps: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
@@ -173,6 +173,20 @@ def ordinal_mae(lp: np.ndarray, ranks) -> float:
 def fingerprint(train: pd.DataFrame, holdout: pd.DataFrame, cyear: int, doc_ids: list[str]) -> dict:
     """The Study 4 fingerprint plus a CORAL marker, so a Study 4 year is never reused as a CORAL year."""
     return {**_fingerprint(train, holdout, cyear, doc_ids), "coral": 1}
+
+
+def year_report(lp_hold: np.ndarray, truth, lp_all: np.ndarray, runs: list) -> dict:
+    """Holdout accuracy, macro F1 and ordinal error, the mean class probabilities (holdout and all scored
+    sentences) and each seed's biases: what to look at after the first year before letting the run continue."""
+    pred, truth = predict_rank(lp_hold), np.asarray(truth, dtype=int)
+    rep = {"accuracy": float((pred == truth).mean()), "macro_f1": _macro_f1(pred, truth),
+           "ordinal_mae": ordinal_mae(lp_hold, truth)}
+    for part, lp in (("holdout", lp_hold), ("all", lp_all)):
+        p = class_probs(lp).mean(0)
+        rep.update({f"mean_p_{c}_{part}": float(v) for c, v in zip(("dovish", "neutral", "hawkish"), p)})
+    rep["biases_by_seed"] = [list(r[2]) for r in runs]
+    rep["n_seeds_biases_unordered"] = int(sum(not r[1] for r in runs))
+    return rep
 
 
 def _macro_f1(pred, truth) -> float:
@@ -215,12 +229,9 @@ def run() -> pd.DataFrame:
             runs = [train_and_score(train, texts, vintage_year(cyear), seed, MODELS / str(cyear) / f"seed{seed}", info)
                     for seed in config.STANCE_SEEDS]
             lp, tone = combine_seeds([r[0] for r in runs])
-            pred, truth = predict_rank(lp[:len(holdout)]), to_ranks(holdout["label"])
-            acc = {"cyear": int(cyear), "vintage": vintage_year(cyear), "n_train": len(train),
-                   "n_holdout": len(holdout), "accuracy": float((pred == truth).mean()),
-                   "macro_f1": _macro_f1(pred, truth), "ordinal_mae": ordinal_mae(lp[:len(holdout)], truth),
-                   "n_seeds_biases_unordered": int(sum(not r[1] for r in runs))}
             n = len(holdout)
+            acc = {"cyear": int(cyear), "vintage": vintage_year(cyear), "n_train": len(train), "n_holdout": n,
+                   **year_report(lp[:n], to_ranks(holdout["label"]), lp[n:], runs)}
             sent = sent.assign(lp1=lp[n:, 0], lp2=lp[n:, 1], stance=tone[n:])
             _write_part(part, (sent, acc, fp))
         acc_rows.append(acc)

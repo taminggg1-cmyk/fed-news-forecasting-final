@@ -168,3 +168,45 @@ def test_pair_stats_report_dm_on_squared_errors_too():
     b, m = frame(), frame()
     s = rn.pair_stats_coral(b, m)
     assert np.isclose(s["dm_hln_sq_p"], rn.dm_hln(b["y_pred"] ** 2, m["y_pred"] ** 2)[1])
+
+
+
+def test_saved_tuning_is_refused_when_the_panel_values_change(monkeypatch, tmp_path):
+    monkeypatch.setattr(rn, "OUT", tmp_path)
+    df = _panel(150)
+    cols = ["a", "b", "c"]
+    fp = rn.panel_fingerprint(df, cols, "gru")
+    saved = {str(pt): {**P, "epochs": 3, "date": str(df.index[pt].date()), "panel": fp}
+             for pt in rn.tuning_points(df.index)}
+    (tmp_path / "settings_gru_X.json").write_text(json.dumps(saved))
+    assert set(rn._load_settings("gru", "X", df, cols)) == set(rn.tuning_points(df.index))
+    changed = df.copy()
+    changed.iloc[5, 1] += 0.01  # a tone value changes, the meeting dates do not
+    with pytest.raises(ValueError, match="panel"):
+        rn._load_settings("gru", "X", changed, cols)
+    assert rn.panel_fingerprint(df, cols, "lstm") != fp
+
+
+def test_cached_hash_survives_csv_round_trip_even_when_it_looks_numeric(tmp_path, monkeypatch):
+    df = _panel()
+    pt = int(np.flatnonzero(df.index >= "2001-01-01")[0])
+    s1 = {pt: {**P, "epochs": 2, "date": str(df.index[pt].date())}}
+    monkeypatch.setattr(rn, "settings_hash", lambda s: "491e99987506")
+    path = tmp_path / "seed0.csv"
+    rn.seed_forecast(df, ["a", "b", "c"], "gru", s1, 0, "cpu", path)
+    cached = pd.read_csv(path, dtype={"settings_hash": str})
+    assert (cached["settings_hash"] == "491e99987506").all()
+    cached["y_pred"] = 999.0
+    cached.to_csv(path, index=False)
+    assert (rn.seed_forecast(df, ["a", "b", "c"], "gru", s1, 0, "cpu", path)["y_pred"] == 999.0).all()
+
+
+def test_truncated_cache_is_recomputed(tmp_path):
+    df = _panel()
+    pt = int(np.flatnonzero(df.index >= "2001-01-01")[0])
+    s1 = {pt: {**P, "epochs": 2, "date": str(df.index[pt].date())}}
+    path = tmp_path / "seed0.csv"
+    full = rn.seed_forecast(df, ["a", "b", "c"], "gru", s1, 0, "cpu", path)
+    pd.read_csv(path).iloc[:5].to_csv(path, index=False)  # a crash mid-write left 5 rows
+    again = rn.seed_forecast(df, ["a", "b", "c"], "gru", s1, 0, "cpu", path)
+    assert len(again) == len(full) == len(pd.read_csv(path))
