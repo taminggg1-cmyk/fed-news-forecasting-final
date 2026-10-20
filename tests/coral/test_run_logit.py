@@ -56,3 +56,26 @@ def test_comparison_row_reports_clark_west_and_log_loss_tests():
     for key in ("clark_west_t", "clark_west_p", "dm_logloss_p", "nw4_logloss_p", "nw8_logloss_p", "log_loss",
                 "accuracy", "brier", "mcnemar_p"):
         assert key in row and np.isfinite(row[key])
+
+
+def test_haiku_verdict_carries_the_memory_caveat():
+    assert "memory cannot be ruled out" in rl.verdict("Haiku ordinal", 0.03, False, haiku=True)["wording"]
+    assert "memory cannot be ruled out" in rl.verdict("Haiku ordinal", 0.30, False, haiku=True)["wording"]
+    assert "memory" not in rl.verdict("ChronoBERT-CORAL", 0.03, False)["wording"]
+
+
+def test_comparison_row_signs_favour_the_better_news_model():
+    rng = np.random.default_rng(3)
+    n = 120
+    dates = pd.date_range("2001-01-01", periods=n, freq="MS")
+    y = rng.normal(5, 1, n)
+    cls = rng.integers(0, 3, n)
+    def preds(noise, sharp):
+        p = np.full((n, 3), (1 - sharp) / 2)
+        p[np.arange(n), cls] = sharp
+        return pd.DataFrame({"date": dates, "y_true": y, "y_pred": y + rng.normal(0, noise, n), "lag": y,
+                             "class_true": cls, "class_pred": cls, "p_cut": p[:, 0], "p_hold": p[:, 1],
+                             "p_hike": p[:, 2]})
+    row = rl.compare_row(preds(1.0, 0.4), preds(0.2, 0.8))
+    assert row["clark_west_t"] > 0 and row["clark_west_p"] < 0.05
+    assert row["dm_logloss_p"] < 0.05 and row["nw4_logloss_p"] < 0.05

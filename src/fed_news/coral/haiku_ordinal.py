@@ -244,7 +244,7 @@ def collect(client) -> None:
            "tokens": usage, "n_docs_without_labels": int((out["n_sent"] == 0).sum()),
            "mean_p": dict(zip(["dovish", "neutral", "hawkish"], np.nanmean(probs, 0).round(4).tolist())),
            "argmax_agreement_with_study4_labels": agreement(probs, old_codes),
-           "doc_tone_correlation_with_study4": float(both["new"].corr(both["old"]))}
+           "doc_tone_correlation_with_study4": float(both["new"].corr(both["old"])) if len(both) >= 3 else None}
     if res["share_unlabelled"] > MAX_UNLABELLED:
         res["warning"] = (f"{n_missing} of {len(probs)} sentences ({res['share_unlabelled']:.1%}) have no "
                           f"probabilities after the retry; their documents' tone uses the remaining sentences")

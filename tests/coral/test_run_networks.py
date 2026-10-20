@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -109,3 +111,60 @@ def test_coral_networks_train_and_forecast_on_cuda():
     for arch in rn.ARCHS:
         out = rn.run_tuned_coral(df, ["a", "b", "c"], arch, settings, 0, "cuda", "2001-01-01")
         assert np.isfinite(out[["lp1", "lp2", "y_pred"]].to_numpy(float)).all()
+
+
+def test_load_settings_requires_every_tuning_point(monkeypatch, tmp_path):
+    monkeypatch.setattr(rn, "OUT", tmp_path)
+    df = _panel(150)  # 1995-01 to 2007-06: tuning points in 2001 and 2005
+    pts = rn.tuning_points(df.index)
+    assert len(pts) == 2
+    only_first = {str(pts[0]): {**P, "epochs": 3, "date": str(df.index[pts[0]].date())}}
+    (tmp_path / "settings_gru_X.json").write_text(json.dumps(only_first))
+    with pytest.raises(ValueError, match="missing"):
+        rn._load_settings("gru", "X", df)
+
+
+def test_seed_forecast_cache_is_reused_only_for_the_same_settings(tmp_path):
+    df = _panel()
+    pt = int(np.flatnonzero(df.index >= "2001-01-01")[0])
+    s1 = {pt: {**P, "epochs": 2, "date": str(df.index[pt].date())}}
+    path = tmp_path / "seed0.csv"
+    first = rn.seed_forecast(df, ["a", "b", "c"], "gru", s1, 0, "cpu", path)
+    cached = pd.read_csv(path)
+    cached["y_pred"] = 999.0
+    cached.to_csv(path, index=False)
+    assert (rn.seed_forecast(df, ["a", "b", "c"], "gru", s1, 0, "cpu", path)["y_pred"] == 999.0).all()
+    s2 = {pt: {**s1[pt], "epochs": 3}}
+    again = rn.seed_forecast(df, ["a", "b", "c"], "gru", s2, 0, "cpu", path)
+    assert not (again["y_pred"] == 999.0).any() and len(again) == len(first)
+
+
+def test_tune_all_refuses_saved_settings_from_another_panel(monkeypatch, tmp_path):
+    monkeypatch.setattr(rn, "OUT", tmp_path)
+    monkeypatch.setattr(rn, "ARMS", {"X": ("H", ["a", "b", "c"])})
+    df = _panel(150)
+    stale = {str(pt): {**P, "epochs": 3, "date": "1990-01-01"} for pt in rn.tuning_points(df.index)}
+    (tmp_path / "settings_gru_X.json").write_text(json.dumps(stale))
+    with pytest.raises(ValueError, match="tuned"):
+        rn.tune_all({"H": df}, "cpu", n_trials=1, archs=["gru"], arms=["X"])
+
+
+def test_projected_hours_include_the_forecast_stage():
+    hours = rn.projected_hours(sec_trial=2.0, sec_fit=1.0, n_points=7, n_test=212)
+    tuning = 2.0 * rn.N_TRIALS * 7 * len(rn.ARMS)
+    forecasting = 1.0 * len(rn.SEEDS) * (int(np.ceil(212 / 8)) + 7) * len(rn.ARMS)
+    assert np.isclose(hours, (tuning + forecasting) / 3600)
+
+
+def test_pair_stats_report_dm_on_squared_errors_too():
+    rng = np.random.default_rng(1)
+    n = 60
+    cls = rng.integers(0, 3, n)
+    def frame():
+        p = rng.dirichlet([2, 2, 2], n)
+        return pd.DataFrame({"date": pd.date_range("2001-01-01", periods=n, freq="MS"), "y_true": np.zeros(n),
+                             "y_pred": rng.normal(0, 1, n), "class_true": cls, "class_pred": p.argmax(1),
+                             "p_cut": p[:, 0], "p_hold": p[:, 1], "p_hike": p[:, 2]})
+    b, m = frame(), frame()
+    s = rn.pair_stats_coral(b, m)
+    assert np.isclose(s["dm_hln_sq_p"], rn.dm_hln(b["y_pred"] ** 2, m["y_pred"] ** 2)[1])

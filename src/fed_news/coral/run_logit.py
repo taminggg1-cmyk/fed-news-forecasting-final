@@ -71,17 +71,23 @@ def void(cw_placebo_p: float, cw_shuffled_p: float) -> bool:
     return bool(cw_placebo_p < config.ALPHA or cw_shuffled_p < 0.01)
 
 
-def verdict(reader: str, p_holm: float, is_void: bool) -> dict:
-    """Decision and wording fixed in the design (section 9)."""
+MEMORY_CAVEAT = ("; memory cannot be ruled out: Claude Haiku 5.5 may have seen these meetings' outcomes in training "
+                 "(pre-cutoff skill is not identified)")
+
+
+def verdict(reader: str, p_holm: float, is_void: bool, haiku: bool = False) -> dict:
+    """Decision and wording fixed in the design (section 9); any Haiku result carries the memory caveat."""
+    caveat = MEMORY_CAVEAT if haiku else ""
     if is_void:
-        return {"decision": "void", "wording": f"a control beat the no-news model, so the {reader} comparison is void"}
+        return {"decision": "void",
+                "wording": f"a control beat the no-news model, so the {reader} comparison is void{caveat}"}
     if p_holm < config.ALPHA:
         return {"decision": "supported",
                 "wording": f"in this exploratory study, the {reader} tone improved ordered-logit forecasts of FOMC "
-                           f"decisions (p = {p_holm:.3g}, Holm-adjusted)"}
+                           f"decisions (p = {p_holm:.3g}, Holm-adjusted){caveat}"}
     return {"decision": "not supported",
             "wording": f"not significant at 5% in this exploratory study (p = {p_holm:.3g}, Holm-adjusted); this "
-                       f"does not show that the {reader} tone does not help"}
+                       f"does not show that the {reader} tone does not help{caveat}"}
 
 
 def compare_row(base: pd.DataFrame, new: pd.DataFrame) -> dict:
@@ -130,7 +136,7 @@ def run() -> dict:
         tone = name.split("+")[-1]
         is_void = void(cw[f"placebo-{tone}"], cw[f"shuffled-{tone}"])
         res[name] = {"placebo_cw_p": cw[f"placebo-{tone}"], "shuffled_cw_p": cw[f"shuffled-{tone}"],
-                     **verdict(reader, adj[name], is_void)}
+                     **verdict(reader, adj[name], is_void, haiku=tone == "Ho")}
     ll = {k: log_loss(v) for k, v in preds.items()}
     ind = _memory_indicators(base["date"])
     keep = ind["has_exam"].to_numpy()

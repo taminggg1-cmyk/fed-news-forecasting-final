@@ -21,7 +21,9 @@ times the training rows' mean move per class. Primary: S+M+Co and S+M+Ho against
 Newey-West (lags 8) on the log-loss difference, scheduled meetings, Holm over the 6.
 """
 import argparse
+import hashlib
 import json
+import os
 import time
 
 import numpy as np
@@ -172,7 +174,7 @@ def pair_stats_coral(base: pd.DataFrame, new: pd.DataFrame, block: int = REFIT_E
             "sq_boot_ci90": block_bootstrap(e_b - e_n, block, BOOT_DRAWS, 0)["ci90"],
             "acc_diff": float(ok_n.mean() - ok_b.mean()),
             "acc_diff_ci90": block_bootstrap(ok_n.astype(float) - ok_b.astype(float), block, BOOT_DRAWS, 0)["ci90"],
-            "dm_hln_logloss_p": dm_hln(ll_b, ll_n)[1], "mcnemar_fixes": fixes, "mcnemar_breaks": breaks,
+            "dm_hln_logloss_p": dm_hln(ll_b, ll_n)[1], "dm_hln_sq_p": dm_hln(e_b, e_n)[1], "mcnemar_fixes": fixes, "mcnemar_breaks": breaks,
             "mcnemar_p": p_mc}
 
 
@@ -194,13 +196,46 @@ def _settings_path(arch: str, arm: str):
     return OUT / f"settings_{arch}_{arm}.json"
 
 
-def _load_settings(arch: str, arm: str, df: pd.DataFrame) -> dict:
-    """Saved settings keyed by row index, checked against the panel's dates (the panel must not have changed)."""
-    settings = {int(k): v for k, v in json.loads(_settings_path(arch, arm).read_text()).items()}
+def _write_json(path, obj) -> None:
+    """Write JSON atomically (temp file, then rename), so a crash never leaves a half-written file."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(obj, indent=2))
+    os.replace(tmp, path)
+
+
+def _check_dates(settings: dict, df: pd.DataFrame, arch: str, arm: str) -> None:
+    """Each saved tuning point must still fall on the date it was tuned on (the panel must not have changed)."""
     for pt, s in settings.items():
-        if str(df.index[pt].date()) != s["date"]:
-            raise ValueError(f"{arch} {arm}: tuning point {pt} is {df.index[pt].date()} now, {s['date']} when tuned")
+        if pt >= len(df) or str(df.index[pt].date()) != s["date"]:
+            now = df.index[pt].date() if pt < len(df) else "beyond the panel"
+            raise ValueError(f"{arch} {arm}: tuning point {pt} is {now} now, {s['date']} when tuned")
+
+
+def _load_settings(arch: str, arm: str, df: pd.DataFrame) -> dict:
+    """Saved settings keyed by row index, checked against the panel's dates; every tuning point must be tuned."""
+    settings = {int(k): v for k, v in json.loads(_settings_path(arch, arm).read_text()).items()}
+    _check_dates(settings, df, arch, arm)
+    missing = sorted(set(tuning_points(df.index)) - set(settings))
+    if missing:
+        raise ValueError(f"{arch} {arm}: tuning incomplete, missing tuning points {missing}")
     return settings
+
+
+def settings_hash(settings: dict) -> str:
+    """Short fingerprint of a settings dict, stored with every forecast made from it."""
+    return hashlib.sha1(json.dumps(settings, sort_keys=True, default=str).encode()).hexdigest()[:12]
+
+
+def seed_forecast(df: pd.DataFrame, cols, arch: str, settings: dict, seed: int, device: str, path) -> pd.DataFrame:
+    """One seed's walk-forward forecasts: reused from `path` only if they were made with these exact settings."""
+    h = settings_hash(settings)
+    if path.exists():
+        cached = pd.read_csv(path, parse_dates=["date"])
+        if "settings_hash" in cached and (cached["settings_hash"].astype(str) == h).all():
+            return cached
+    out = run_tuned_coral(df, cols, arch, settings, seed, device, config.TEST_START).assign(settings_hash=h)
+    out.to_csv(path, index=False)
+    return out
 
 
 def tune_all(pan: dict, device: str, n_trials: int = N_TRIALS, archs=ARCHS, arms=None) -> None:
@@ -212,32 +247,56 @@ def tune_all(pan: dict, device: str, n_trials: int = N_TRIALS, archs=ARCHS, arms
             df = pan[which]
             path = _settings_path(arch, arm)
             done = {int(k): v for k, v in json.loads(path.read_text()).items()} if path.exists() else {}
+            _check_dates(done, df, arch, arm)
             X, ranks = df[cols].to_numpy(float), df["y_class"].to_numpy(int)
             for pt in tuning_points(df.index):
                 if pt in done:
                     continue
                 t0 = time.time()
                 done[pt] = tune_point_coral(X, ranks, pt, arch, device, n_trials) | {"date": str(df.index[pt].date())}
-                path.write_text(json.dumps(done, indent=2))
+                _write_json(path, done)
                 print(f"{arch} {arm} {df.index[pt].date()}: {done[pt]} ({time.time() - t0:.0f}s)", flush=True)
 
 
+def projected_hours(sec_trial: float, sec_fit: float, n_points: int, n_test: int, n_trials: int = N_TRIALS,
+                    n_arms: int | None = None, n_seeds: int | None = None) -> float:
+    """Hours for one architecture: tuning (trials x points x arms) plus forecasting (seeds x refits x arms), with a
+    refit every REFIT_EVERY meetings and at each tuning point."""
+    n_arms = len(ARMS) if n_arms is None else n_arms
+    n_seeds = len(SEEDS) if n_seeds is None else n_seeds
+    refits = int(np.ceil(n_test / REFIT_EVERY)) + n_points
+    return (sec_trial * n_trials * n_points * n_arms + sec_fit * n_seeds * refits * n_arms) / 3600
+
+
 def time_trial(pan: dict, device: str, archs=ARCHS) -> dict:
-    """Seconds per trial at the last tuning point (the most rows) and the projected hours for every arm."""
+    """Seconds per trial and per final fit at the last tuning point (the most rows), and the projected hours for
+    tuning and forecasting every arm."""
     df = pan["C"]
     X, ranks = df[SM + D].to_numpy(float), df["y_class"].to_numpy(int)
     pts = tuning_points(df.index)
-    secs = {}
+    n_test = int((df.index >= pd.Timestamp(config.TEST_START)).sum())
+    fit = {"hidden": 64, "dropout": 0.1, "lr": 1e-3, "weight_decay": 1e-4, "lookback": 8, "batch": 32, "heads": 2,
+           "epochs": 50}
+    secs, fits = {}, {}
     for arch in archs:
         t0 = time.time()
         tune_point_coral(X, ranks, pts[-1], arch, device, 3)
         secs[arch] = (time.time() - t0) / 3
-    hours = {a: s * N_TRIALS * len(pts) * len(ARMS) / 3600 for a, s in secs.items()}
-    res = {"device": device, "seconds_per_trial_at_last_point": secs, "hours_upper_bound_per_arch": hours,
+        rows = np.arange(fit["lookback"] - 1, pts[-1])
+        mask = np.zeros(len(X), bool)
+        mask[rows] = True
+        model = build_coral_model(arch, X.shape[1], fit["hidden"], fit["dropout"], 0, heads=fit["heads"])
+        t0 = time.time()
+        fit_fixed_coral(model, make_sequences(standardise(X, mask), rows, fit["lookback"]), ranks[rows], fit["lr"],
+                        fit["epochs"], device, batch_size=fit["batch"], weight_decay=fit["weight_decay"])
+        fits[arch] = time.time() - t0
+    hours = {a: projected_hours(secs[a], fits[a], len(pts), n_test) for a in archs}
+    res = {"device": device, "seconds_per_trial_at_last_point": secs, "seconds_per_final_fit_50_epochs": fits,
+           "hours_upper_bound_per_arch": hours,
            "hours_upper_bound_total_sequential": float(sum(hours.values())),
            "ask_user": bool(sum(hours.values()) > 36)}
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "timing.json").write_text(json.dumps(res, indent=2))
+    _write_json(OUT / "timing.json", res)
     print(json.dumps(res, indent=2), flush=True)
     return res
 
@@ -276,10 +335,7 @@ def forecast_all(pan: dict, device: str, archs=ARCHS) -> pd.DataFrame:
             settings = _load_settings(arch, arm, df)
             frames = []
             for seed in SEEDS:
-                path = OUT / f"preds_{arch}_{arm}_seed{seed}.csv"
-                if not path.exists():
-                    run_tuned_coral(df, cols, arch, settings, seed, device, config.TEST_START).to_csv(path, index=False)
-                f = pd.read_csv(path, parse_dates=["date"])
+                f = seed_forecast(df, cols, arch, settings, seed, device, OUT / f"preds_{arch}_{arm}_seed{seed}.csv")
                 frames.append(f)
                 bias_rows.append({"arch": arch, "arm": arm, "seed": seed,
                                   "n_rows_biases_unordered": int((~f["biases_ordered"].astype(bool)).sum())})
