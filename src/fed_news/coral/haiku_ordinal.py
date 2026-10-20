@@ -33,6 +33,9 @@ WORK = config.DATA / "coral"
 RESULTS = config.RESULTS / "coral"
 OUT_PATH = WORK / "doc_stance_haiku_ordinal.pkl"
 STATE = WORK / "haiku_state.json"
+OLD_LABELS = config.DATA / "study4" / "sentence_labels.pkl"   # Study 4 labels, for the descriptive checks
+OLD_DOC = config.DATA / "doc_stance_haiku.pkl"
+MAX_UNLABELLED = 0.01  # share of sentences without probabilities above which collect warns
 TOKEN_LIMIT, OUT_PER_SENTENCE, N_COUNT = 35_000_000, 15, 200
 SYSTEM = pl.SYSTEM[:pl.SYSTEM.index("Judge only")] + (
     "For each sentence give three whole numbers from 0 to 100 that add up to 100: the probabilities that the "
@@ -49,6 +52,16 @@ def request_params(sents: list[str]) -> dict:
             "messages": [{"role": "user", "content": pl.batch_prompt(sents)}]}
 
 
+def _number(x, i: int) -> float:
+    """A JSON number or numeric string as a float; anything else (null, true/false, a list, text) is invalid."""
+    if isinstance(x, bool) or not isinstance(x, (int, float, str)):
+        raise ValueError(f"sentence {i}: {x!r} is not a number")
+    try:
+        return float(x)
+    except ValueError:
+        raise ValueError(f"sentence {i}: {x!r} is not a number") from None
+
+
 def parse_probs(text: str, n: int) -> tuple[np.ndarray, int]:
     """Read a reply into (n, 3) probabilities (dovish, neutral, hawkish) and the number of rows that were divided by
     their sum; raise ValueError if any sentence is missing or invalid."""
@@ -61,7 +74,7 @@ def parse_probs(text: str, n: int) -> tuple[np.ndarray, int]:
         v = obj.get(str(i))
         if not isinstance(v, (list, tuple)) or len(v) != 3:
             raise ValueError(f"sentence {i}: {v!r} is not three numbers")
-        row = np.array([float(x) for x in v])
+        row = np.array([_number(x, i) for x in v])
         if not np.isfinite(row).all() or (row < 0).any() or (row > 100).any():
             raise ValueError(f"sentence {i}: {v!r} outside [0, 100]")
         total = row.sum()
@@ -148,13 +161,16 @@ def project(client) -> dict:
 
 
 def _submit(client, masked, parts, ks, state: dict, key: str) -> None:
-    """Send requests in batches of PER_BATCH, saving each batch id at once so a crash never resends a batch."""
+    """Send requests in batches of PER_BATCH, saving each batch id at once so a crash never resends a batch. The
+    SDK's automatic retries are off for these calls: a retried POST whose first attempt succeeded would create a
+    second, paid batch."""
     ks = list(ks)
+    sender = client.with_options(max_retries=0)
     ids = state.setdefault(key, [])
     for s in range(len(ids) * PER_BATCH, len(ks), PER_BATCH):
         reqs = [{"custom_id": f"c{k}", "params": request_params([masked[i] for i in parts[k]])}
                 for k in ks[s:s + PER_BATCH]]
-        ids.append(client.messages.batches.create(requests=reqs).id)
+        ids.append(sender.messages.batches.create(requests=reqs).id)
         _save_state(state)
         print(f"{key}: batch {ids[-1]} with {len(reqs)} requests", flush=True)
 
@@ -189,7 +205,7 @@ def _results(client, batch_ids: list[str], answers: dict, usage: dict, parts, co
             if msg.stop_reason in ("refusal", "max_tokens"):
                 raise ValueError(msg.stop_reason)
             probs, n_norm = parse_probs("".join(b.text for b in msg.content if b.type == "text"), len(parts[k]))
-        except (ValueError, json.JSONDecodeError):
+        except (ValueError, TypeError, json.JSONDecodeError):
             failed.append(k)
             continue
         answers[k] = probs
@@ -219,15 +235,20 @@ def collect(client) -> None:
         WORK / "haiku_sentence_probs.pkl")
     out = doc_stance(docs, sent, probs)
     out.to_pickle(OUT_PATH)
-    old_codes = pd.read_pickle(config.DATA / "study4" / "sentence_labels.pkl")["code"].to_numpy()
-    old_doc = pd.read_pickle(config.DATA / "doc_stance_haiku.pkl").set_index("doc_id")["stance"]
+    old_codes = pd.read_pickle(OLD_LABELS)["code"].to_numpy()
+    old_doc = pd.read_pickle(OLD_DOC).set_index("doc_id")["stance"]
     both = out.set_index("doc_id")["stance"].to_frame("new").join(old_doc.rename("old")).dropna()
-    res = {"n_sentences": len(probs), "n_unlabelled": int(np.isnan(probs[:, 0]).sum()),
+    n_missing = int(np.isnan(probs[:, 0]).sum())
+    res = {"n_sentences": len(probs), "n_unlabelled": n_missing, "share_unlabelled": n_missing / len(probs),
            "n_rows_normalised": int(sum(counts.values())), "n_failed_first": state.get("n_failed_first", 0),
            "tokens": usage, "n_docs_without_labels": int((out["n_sent"] == 0).sum()),
            "mean_p": dict(zip(["dovish", "neutral", "hawkish"], np.nanmean(probs, 0).round(4).tolist())),
            "argmax_agreement_with_study4_labels": agreement(probs, old_codes),
            "doc_tone_correlation_with_study4": float(both["new"].corr(both["old"]))}
+    if res["share_unlabelled"] > MAX_UNLABELLED:
+        res["warning"] = (f"{n_missing} of {len(probs)} sentences ({res['share_unlabelled']:.1%}) have no "
+                          f"probabilities after the retry; their documents' tone uses the remaining sentences")
+        print("WARNING:", res["warning"], flush=True)
     RESULTS.mkdir(parents=True, exist_ok=True)
     (RESULTS / "haiku_index.json").write_text(json.dumps(res, indent=2))
     print(json.dumps(res, indent=2), flush=True)
