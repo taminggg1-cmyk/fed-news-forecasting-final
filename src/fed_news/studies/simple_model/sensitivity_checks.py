@@ -5,7 +5,7 @@ Writes:  results/study4/sensitivity/.
 Run:     python -m fed_news.studies.simple_model.sensitivity_checks
 
 Details: Study 4, section 8: sensitivity checks after the external review (exploratory, added after results)
-(docs/design/2026-10-12-study4-haiku-index-tuned-design.md).
+(docs/studies/1_study4/2026-10-12-study4-haiku-index-tuned-design.md).
 
 8.1 real-time data: drop the S columns whose series need the ALFRED fallback, and score the meetings after the
 last fallback row. 8.2 which news columns carry the Plan 1 gain, in one pipeline. 8.3 counts by class and

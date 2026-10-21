@@ -11,7 +11,7 @@ Run:     python -m fed_news.features.haiku_tone project   (count tokens first)
          python -m fed_news.features.haiku_tone collect
 
 Details: Study 4, section 3: Claude Haiku 5.5 stance labels for every sentence ChronoBERT scored
-(docs/design/2026-10-12-study4-haiku-index-tuned-design.md).
+(docs/studies/1_study4/2026-10-12-study4-haiku-index-tuned-design.md).
 
 Steps (each resumable): --project counts the input tokens of 200 random requests and scales them to all;
 --submit sends every request through the Message Batches API if the projection is within the token limit;

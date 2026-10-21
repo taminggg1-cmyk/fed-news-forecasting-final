@@ -10,7 +10,7 @@ project that opens a network connection, and saves the result in the data folder
 there just loads it, without downloading. The order matters: the meeting list needs the calendar and the daily target
 rate, the documents need the calendar, and the labels are dated with the documents.
 
-Next: build the tone scores and the training rows (docs/CODE_GUIDE.md, stage 2).
+Next: build the tone scores and the training rows (docs/guides/CODE_GUIDE.md, stage 2).
 """
 import argparse
 import time

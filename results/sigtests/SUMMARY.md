@@ -1,6 +1,6 @@
 # Literature significance tests on the saved forecasts (exploratory)
 
-Design: docs/design/2026-10-21-tests-and-distill-design.md, Part A. Nothing here changes a registered verdict. With this many tests some p-values fall below 0.05 by chance; choosing a test after seeing its result is not confirmatory evidence.
+Design: docs/studies/3_sigtests_distill/2026-10-21-tests-and-distill-design.md, Part A. Nothing here changes a registered verdict. With this many tests some p-values fall below 0.05 by chance; choosing a test after seeing its result is not confirmatory evidence.
 
 Pairwise tests run: 624; in-sample tests: 10.
 

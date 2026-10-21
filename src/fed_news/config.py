@@ -2,7 +2,7 @@
 
 WHERE THE DATA IS (DATA below): the folder in the environment variable FED_NEWS_DATA if set; else <repo>/data,
 which `python scripts/download_data.py` fills from this repository's release; else D:/fed_news (the author's
-machine). docs/DATA.md lists every file. Results go to results/.
+machine). docs/guides/DATA.md lists every file. Results go to results/.
 
 Details: Paths and every fixed setting of the design (spec sections 4, 6, 7, 8).
 """

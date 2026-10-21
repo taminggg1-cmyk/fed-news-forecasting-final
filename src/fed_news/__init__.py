@@ -8,5 +8,5 @@
     evaluation/          metrics and tests (DM-HLN, Newey-West, McNemar, Holm)
     studies/             simple_model/ (Study 4) and networks/ (Study 4 version 2): the runs that produce results/
 
-Start with docs/CODE_GUIDE.md: it shows where each piece of data comes from and which file reads it next.
+Start with docs/guides/CODE_GUIDE.md: it shows where each piece of data comes from and which file reads it next.
 """

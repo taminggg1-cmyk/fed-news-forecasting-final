@@ -4,15 +4,70 @@
 tone of Fed communication improves out-of-sample forecasts of FOMC decisions and of the federal funds rate, beyond
 the economic statistics and market interest rates that were available at the time.
 
-This repository holds **only the final study**: Study 4 (the simple model) and Study 4 version 2 (the tuned neural
-networks). The full project record is in
-[fed-news-forecasting](https://github.com/taminggg1-cmyk/fed-news-forecasting): the earlier trial-and-error designs
-(Plan 1, Plan 2, Plan 5, Study 2, Study 3, Study 5 and the proofs of concept), their pre-registrations, the
-2026-10-13 audit and the draft paper. Commit hashes on this page (b4a00fd, 7879a70, 6048e0d, 1a31c73) refer to that
-repository, where the date of each design can be checked.
+This repository holds the final study (Study 4) and the studies that followed it. Each study has its own folder for
+its code, tests, design documents and results. The earlier trial-and-error designs (attempts 1-5: Plan 1, Plan 2,
+Plan 5, Study 2, Study 3, Study 5 and the proofs of concept), their pre-registrations, the 2026-10-13 audit and the
+draft paper are in [fed-news-forecasting](https://github.com/taminggg1-cmyk/fed-news-forecasting). Commit hashes in
+the Study 4 sections (b4a00fd, 7879a70, 6048e0d, 1a31c73) refer to that repository, where the date of each design
+can be checked.
 
 *Draft research, October 2026. The code, analyses and documents were written with an AI coding agent
 (see [How this was made](#how-this-was-made)).*
+
+## Short answer
+
+- **Fed tone usually improves the forecasts a little, but rarely enough to pass the test each study declared in
+  advance.** [`results/ATTEMPTS.md`](results/ATTEMPTS.md) lists every attempt, its primary test and its result; a
+  p-value below 0.05 found after many attempts is weaker evidence than one found on the first.
+- **Strongest result so far (attempt 12b, declared before its run).** The TFT network with the Haiku-distilled
+  ChronoBERT tone beats the same network without news on the 134 scheduled meetings from 2010. Log loss falls from
+  0.403 to 0.318; Newey-West p = 0.0017, Holm-adjusted over the 3 networks p = 0.0050. The tone is read by a model
+  frozen at the end of 2009, so it cannot remember later decisions. Two limits: this was the declared secondary
+  test (the primary ordered-logit test gave Clark-West p = 0.220), and the TFT's gain over a placebo tone is not
+  significant (p = 0.082).
+- **Study 4.** Only one gain is significant, LSTM + Claude Haiku on meetings (Holm p = 0.020), under an amendment
+  written after the first network results, and it is not confirmed on strict real-time data.
+- Not significant does not mean news fails: with about 135-210 test meetings, gains this small are hard to tell
+  apart from chance.
+
+## Studies at a glance
+
+| Study | Attempts | Question | Documents | Code (`src/fed_news/studies/`) | Results | Primary result |
+| --- | --- | --- | --- | --- | --- | --- |
+| Study 4 and version 2 | 6-8 | Does ChronoBERT (C) or Haiku (H) tone help an ordered logit and tuned LSTM / GRU / TFT? | [`docs/studies/1_study4/`](docs/studies/1_study4/) | `simple_model/`, `networks/` | [`results/study4/`](results/study4/) | Ordered logit: not supported (H p = 0.144). Networks: LSTM + H Holm p = 0.020, the other 5 not significant |
+| CORAL study | 9-11 | Does an ordinal tone (ChronoBERT-CORAL "Co", Haiku ordinal "Ho") help, with CORAL networks? | [`docs/studies/2_coral/`](docs/studies/2_coral/) | `coral/` | [`results/coral/`](results/coral/) | Not supported: logit Ho Holm p = 0.133; networks Holm p ≥ 0.145; from 2010, 0.0997 and 0.073 |
+| Literature tests | exploratory | Do the tests other studies use (fixed-b, fixed-m, ranked probability score, Giacomini-White, SPA, in-sample) change the picture? | [`docs/studies/3_sigtests_distill/`](docs/studies/3_sigtests_distill/) (Part A) | `sigtests/` | [`results/sigtests/`](results/sigtests/) | No test that passes its placebo check gives p < 0.05 after Holm; closest 0.050-0.052 |
+| Haiku-distilled ChronoBERT | 12, 12b | Does ChronoBERT trained on Haiku's probabilities up to 2009 (tone "Hd") help from 2010? | [`docs/studies/3_sigtests_distill/`](docs/studies/3_sigtests_distill/) (Part B) | `distill/` | [`results/distill/`](results/distill/) | Ordered logit p = 0.220 (not supported). Networks: TFT Holm p = 0.0050 against no news, p = 0.082 against its placebo |
+| Text against economic data | 13 | Does tone help beyond a Taylor rule without market prices? | [`docs/studies/4_text_vs_economy/`](docs/studies/4_text_vs_economy/) | not built | none | Designed, not run |
+
+## Repository layout
+
+```
+src/fed_news/
+  config.py       settings, and where the data folder is
+  download/       everything fetched from the internet (ALFRED, FRED, Fed documents, FOMC calendar, labels, indices)
+  features/       Fed tone (ChronoBERT, Haiku) and the training rows (per meeting, per month)
+  models/         ordered logit, ridge, the walk-forward loop, LSTM / GRU / TFT
+  evaluation/     accuracy numbers and significance tests (DM-HLN, Newey-West, McNemar, Holm, Clark-West)
+  studies/        one folder per study; each writes results/<study>/
+    simple_model/   Study 4 (ordered logit)
+    networks/       Study 4 version 2 (tuned LSTM / GRU / TFT)
+    coral/          CORAL study
+    sigtests/       literature tests on the saved forecasts
+    distill/        Haiku-distilled ChronoBERT
+tests/
+  shared/         tests of download/, features/, models/, evaluation/
+  studies/        tests of each study, in folders named as in src/fed_news/studies/
+docs/
+  guides/         code guide, data description and manifest, technical pipeline note, deviations
+  studies/        one folder per study: designs, plans, reports (README lists them)
+results/
+  ATTEMPTS.md     every attempt and its primary test
+  study4/ coral/ sigtests/ distill/   one folder per study (README lists them)
+scripts/
+  download_data.py   fetch and check the training data
+  audit/             why the simple model beats the networks (script and output)
+```
 
 ## Quick start (Linux, macOS or Windows)
 
@@ -28,37 +83,15 @@ uv run python -m fed_news.studies.networks.run_networks forecast --task T2 --dev
 ```
 
 **Where is the data?** In `data/` after the download step (the code finds it there by itself; you can also set
-`FED_NEWS_DATA` to any folder). [`docs/DATA.md`](docs/DATA.md) describes every file, and
-[`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md) shows where each one is downloaded from, which file builds it and which
-file reads it next. **Start reading the code with `docs/CODE_GUIDE.md`.** To download the raw data yourself instead
+`FED_NEWS_DATA` to any folder). [`docs/guides/DATA.md`](docs/guides/DATA.md) describes every file, and
+[`docs/guides/CODE_GUIDE.md`](docs/guides/CODE_GUIDE.md) shows where each one is downloaded from, which file builds it and which
+file reads it next. **Start reading the code with `docs/guides/CODE_GUIDE.md`.** To download the raw data yourself instead
 of using the zip: `uv run python -m fed_news.download` (every source, in order; needs a free FRED API key).
-
-## Short answer
-
-News improves most models: Fed tone lowers the forecast error in 12 of 14 main comparisons (10 of 12 for the
-networks, and both versions of the simple model). Only one gain is statistically significant, LSTM + Claude Haiku on
-meetings, and it is not confirmed on strict real-time data. Not significant does not mean news fails: with about
-200 meetings, gains this small cannot yet be told apart from chance.
-
-## The two parts
-
-| Part | Code | Models | Tasks | Status |
-| --- | --- | --- | --- | --- |
-| Study 4 | `src/fed_news/studies/simple_model/` | Simple model: penalised ordered logit | Per meeting | Exploratory study; design b4a00fd committed before the first run, results 7879a70 |
-| Study 4 version 2 | `src/fed_news/studies/networks/` | LSTM, GRU, TFT, tuned with Optuna inside each training window, 8 seeds | Per meeting and monthly | Dated amendment 6048e0d, written after the version 1 network results had been seen; results 1a31c73. Not a pre-registration |
-
-**Shared design.** FOMC meetings and months, 2001–2026. Every forecast uses only information available before it:
-16 economic statistics as first published (ALFRED vintages), plus 8 market signals for meetings. Fed tone is read
-by ChronoBERT (retrained each year on earlier text only, so it cannot see the future) or by Claude Haiku 5.5, which
-labelled 343,717 of 343,742 Fed sentences (its training data run to June 2026). Per meeting: 206 scheduled meetings, predicting
-cut / hold / hike and the new target rate. Monthly: 308 months, predicting the average effective fed funds rate.
-The design is in [`docs/design/`](docs/design/2026-10-12-study4-haiku-index-tuned-design.md) (section 12 is the
-version 2 amendment).
 
 ## Data
 
 Every input is dated, and each training row uses only what was public before its cutoff: the day before the meeting,
-or the start of the second US business day of the month. [`docs/DATA.md`](docs/DATA.md) describes every file.
+or the start of the second US business day of the month. [`docs/guides/DATA.md`](docs/guides/DATA.md) describes every file.
 
 | Input | Source | What the models see |
 | --- | --- | --- |
@@ -87,7 +120,26 @@ its change from the previous row. "C" and "H" mark which reader's tone a model u
 **Rows.** Meetings: 270 rows from February 1994, of which 212 test meetings from 2001 (206 scheduled). Months: 393
 rows from January 1994, of which 308 test months from 2001. Earlier rows are used only for training.
 
-## Architecture pipeline
+## Study 4 in detail
+
+**Short answer for Study 4.** News improves most models: Fed tone lowers the forecast error in 12 of 14 main
+comparisons (10 of 12 for the networks, and both versions of the simple model). Only one gain is statistically
+significant, LSTM + Claude Haiku on meetings, and it is not confirmed on strict real-time data.
+
+| Part | Code | Models | Tasks | Status |
+| --- | --- | --- | --- | --- |
+| Study 4 | `src/fed_news/studies/simple_model/` | Simple model: penalised ordered logit | Per meeting | Exploratory study; design b4a00fd committed before the first run, results 7879a70 |
+| Study 4 version 2 | `src/fed_news/studies/networks/` | LSTM, GRU, TFT, tuned with Optuna inside each training window, 8 seeds | Per meeting and monthly | Dated amendment 6048e0d, written after the version 1 network results had been seen; results 1a31c73. Not a pre-registration |
+
+**Shared design.** FOMC meetings and months, 2001–2026. Every forecast uses only information available before it:
+16 economic statistics as first published (ALFRED vintages), plus 8 market signals for meetings. Fed tone is read
+by ChronoBERT (retrained each year on earlier text only, so it cannot see the future) or by Claude Haiku 5.5, which
+labelled 343,717 of 343,742 Fed sentences (its training data run to June 2026). Per meeting: 206 scheduled meetings, predicting
+cut / hold / hike and the new target rate. Monthly: 308 months, predicting the average effective fed funds rate.
+The design is in [`docs/studies/1_study4/`](docs/studies/1_study4/2026-10-12-study4-haiku-index-tuned-design.md)
+(section 12 is the version 2 amendment).
+
+## Study 4 pipeline
 
 ```mermaid
 flowchart LR
@@ -143,9 +195,11 @@ flowchart LR
 Each model runs in matched versions on the same rows: no news, + ChronoBERT tone (C), + Haiku tone (H) and a placebo
 (tone shifted by half the sample). The ordered logit adds a shuffled-label control; the networks add the same versions
 on strict data (only the 8 fully vintaged statistics). The
-file-by-file version of this pipeline, with every command, is in [`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md).
+file-by-file version of this pipeline, with every command, is in [`docs/guides/CODE_GUIDE.md`](docs/guides/CODE_GUIDE.md).
+The later studies' pipeline (CORAL head, distilled ChronoBERT), with tensor shapes, is in
+[`docs/guides/PIPELINE_TECHNICAL.md`](docs/guides/PIPELINE_TECHNICAL.md).
 
-## Results
+## Study 4 results
 
 **Per meeting (206 scheduled meetings, 2001–2026): decisions called correctly, with p for the news versions**
 
@@ -182,11 +236,11 @@ ridge) used a different news input and is in the original repository.
 squared error. Simple-model p-values are HLN Diebold–Mariano tests on log loss, over all 212 meetings. Holm p
 corrects over the 6 network comparisons per task (LSTM, GRU and TFT × ChronoBERT and Haiku) on normal data. A
 four-test value (0.0135) printed in an early run log was provisional and is superseded
-([`docs/DEVIATIONS.md`](docs/DEVIATIONS.md)). Strict data = only the 8 fully vintaged statistics; it is a robustness
+([`docs/guides/DEVIATIONS.md`](docs/guides/DEVIATIONS.md)). Strict data = only the 8 fully vintaged statistics; it is a robustness
 check outside the Holm family. Sources: `results/study4/neural/metrics_neural_T2.csv`, `comparison_neural_T2.csv`,
 `results/study4/neural_t1/metrics_neural_T1.csv`, `comparison_neural_T1.csv`, `results/study4/verdict_T2.json`.
 
-## Checks on the news signal
+## Study 4: checks on the news signal
 
 - **Placebo:** the tone series shifted by half the sample (about 16 years). It never beats the base model
   significantly (smallest p 0.115). LSTM + Haiku beats its own placebo (p 0.0008).
@@ -202,7 +256,7 @@ check outside the Holm family. Sources: `results/study4/neural/metrics_neural_T2
 
 On normal data the ordered logit (RMSE 0.127 percentage points) has lower RMSE than every network (0.133–0.161), and
 calls at least as many decisions right as the best network in each column. Descriptive diagnostics, not registered
-tests ([`audit/why_simple_model_wins.txt`](audit/why_simple_model_wins.txt)):
+tests ([`scripts/audit/why_simple_model_wins.txt`](scripts/audit/why_simple_model_wins.txt)):
 
 - Each refit trains on 48 to 246 meetings. The tuned LSTM and GRU have a median of about 211,000 and 217,000
   parameters; the logit has 26.
@@ -236,24 +290,6 @@ each says where it came from.
 | Haiku memory exam | `results/inputs_from_earlier/memory_exam.csv` | proofs of concept | the memory flag |
 | Untuned paper-settings forecasts | `results/inputs_from_earlier/paper_settings/` | Plan 2 | the "tuning matters" rows |
 
-## Repository layout
-
-```
-src/fed_news/
-  config.py     settings, and where the data folder is
-  download/     everything fetched from the internet (ALFRED, FRED, Fed documents, FOMC calendar, labels, indices)
-  features/     Fed tone (ChronoBERT, Haiku) and the training rows (per meeting, per month)
-  models/       ordered logit, ridge, the walk-forward loop, LSTM / GRU / TFT
-  evaluation/   accuracy numbers and significance tests (DM-HLN, Newey-West, McNemar, Holm)
-  studies/      simple_model/ (Study 4) and networks/ (Study 4 version 2): the runs that write results/
-scripts/        download_data.py: fetch and check the training data
-tests/          offline unit tests
-results/study4/ saved forecasts, metrics and test tables (each folder has a README)
-results/inputs_from_earlier/   the two input files listed above
-audit/          why the simple model beats the networks (script and output)
-docs/           code guide, data description, design (with the version 2 amendment), Study 4 report, deviations
-```
-
 ## Reproduce
 
 - **Environment.** `uv sync` installs Python 3.13 and the exact package versions in `uv.lock` (the ones that produced
@@ -261,19 +297,25 @@ docs/           code guide, data description, design (with the version 2 amendme
 - **Data.** `uv run python scripts/download_data.py` downloads `final_study_data.zip` (79 MB zipped, 279 MB unzipped,
   53 files) from the release
   [`data-2026-10-18`](https://github.com/taminggg1-cmyk/fed-news-forecasting-final/releases/tag/data-2026-10-18),
-  unpacks it into `data/` and checks every file against [`docs/DATA_MANIFEST.txt`](docs/DATA_MANIFEST.txt). It holds
+  unpacks it into `data/` and checks every file against [`docs/guides/DATA_MANIFEST.txt`](docs/guides/DATA_MANIFEST.txt). It holds
   the feature panels, ChronoBERT and Haiku tone scores, Haiku's sentence labels, the Fed documents, human labels,
-  ALFRED vintages and market series ([`docs/DATA.md`](docs/DATA.md)). API keys are not included.
-- **Runs** (`uv run python -m ...`; [`docs/CODE_GUIDE.md`](docs/CODE_GUIDE.md) lists every step):
+  ALFRED vintages and market series ([`docs/guides/DATA.md`](docs/guides/DATA.md)). API keys are not included.
+- **Runs** (`uv run python -m ...`; [`docs/guides/CODE_GUIDE.md`](docs/guides/CODE_GUIDE.md) lists every step):
   - `fed_news.studies.simple_model.run_simple_model` reruns the simple model (CPU, about 5 minutes).
   - `fed_news.studies.networks.run_networks forecast --task T2 --device cpu` (and `--task T1`) rebuilds the network
     ensembles, metrics and tests from the saved per-seed forecasts. Deleting those forecasts makes it retrain the
     networks (hours; a GPU helps for the TFT). `run_networks tune --trials 20` reruns the Optuna search.
   - `fed_news.studies.simple_model.sensitivity_checks` and `fed_news.studies.networks.pooled_news_test` rerun the
-    exploratory checks; `uv run python audit/why_simple_model_wins.py` reruns the diagnostics.
+    exploratory checks; `uv run python scripts/audit/why_simple_model_wins.py` reruns the diagnostics.
+  - Later studies (each file's header gives its steps and what it reads and writes):
+    `fed_news.studies.coral.run_logit`, `fed_news.studies.coral.run_networks tune|forecast` and
+    `fed_news.studies.coral.from2010` (CORAL study); `fed_news.studies.sigtests.run_battery` (literature tests);
+    `fed_news.studies.distill.chronobert_distill tune|final|tone`, `fed_news.studies.distill.run_logit` and
+    `fed_news.studies.distill.run_networks tune|forecast` (distilled ChronoBERT). Their tone scores (the data
+    folder's `coral/` and `distill/`) were built after the data release and are not in it yet.
 - **Checked on 2026-10-18** in a fresh copy set up with `uv sync` and `scripts/download_data.py`: rerunning the simple
   model, both network evaluations, the pooled test and the diagnostics reproduced every file in `results/study4/`
-  and `audit/` byte for byte.
+  and `audit/` (now `scripts/audit/`) byte for byte.
 - Building the tone scores again: `fed_news.features.chronobert_tone` (CUDA GPU) and
   `fed_news.features.haiku_tone project|submit|collect` (Claude API, about 23.4 million tokens).
 
@@ -282,7 +324,7 @@ docs/           code guide, data description, design (with the version 2 amendme
 All code, analyses and documents were written by an AI coding agent (Claude, by Anthropic) working with the
 project's author. The author's decisions appear where commit messages and design documents record them. Results
 added after earlier results had been seen are labelled exploratory, and the deviations are listed in
-[`docs/DEVIATIONS.md`](docs/DEVIATIONS.md).
+[`docs/guides/DEVIATIONS.md`](docs/guides/DEVIATIONS.md).
 
 ## License
 

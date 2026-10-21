@@ -1,7 +1,7 @@
 """STUDY 4 VERSION 2 MAIN RUN: LSTM, GRU and TFT, tuned, with and without Fed tone.
 
 Step "tune": Optuna searches each network's settings inside each training window (the committed runs used --trials 20;
-docs/DEVIATIONS.md). Step "forecast": walk-forward forecasts with 8 seeds, then metrics and tests. Forecast files that
+docs/guides/DEVIATIONS.md). Step "forecast": walk-forward forecasts with 8 seeds, then metrics and tests. Forecast files that
 already exist are reused, so "forecast" on the saved files only recomputes the tables.
 Reads:   <data>/t2.pkl, t2_full.pkl (meetings) or t1b.pkl, t1b_full.pkl (months), doc_stance.pkl, doc_stance_haiku.pkl,
          <data>/alfred/, results/inputs_from_earlier/paper_settings/.
@@ -11,7 +11,7 @@ Run:     python -m fed_news.studies.networks.run_networks tune --task T2 --trial
          python -m fed_news.studies.networks.run_networks forecast --task T2 --device cpu
 
 Details: Study 4, sections 5, 10-12: LSTM, GRU and a TFT-inspired network tuned on our own data (secondary)
-(docs/design/2026-10-12-study4-haiku-index-tuned-design.md; version 2 protocol, section 12).
+(docs/studies/1_study4/2026-10-12-study4-haiku-index-tuned-design.md; version 2 protocol, section 12).
 
 At each tuning point (the first test row of 2001, 2005, ..., 2025) Optuna's TPE sampler searches the settings
 on rows before that point only. Every candidate is scored on the same 4 expanding validation folds (section

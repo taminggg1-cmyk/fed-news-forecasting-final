@@ -1,7 +1,7 @@
 # อธิบายการศึกษา CORAL (ภาษาไทย): input, การ train, hyperparameter และการตรวจ loss
 
 เอกสารนี้อธิบายว่าแต่ละโมเดลในการศึกษา CORAL รับอะไรเข้าไป ถูก train อย่างไร ใช้ hyperparameter อะไร
-และเราตรวจได้อย่างไรว่า loss ถูกต้อง ตัวเลขทั้งหมดมาจากไฟล์ใน results/coral/ และโค้ดใน src/fed_news/coral/
+และเราตรวจได้อย่างไรว่า loss ถูกต้อง ตัวเลขทั้งหมดมาจากไฟล์ใน results/coral/ และโค้ดใน src/fed_news/studies/coral/
 
 ## 1. ภาพรวม
 
@@ -167,7 +167,7 @@ L = - Σ_k [ y_k · log σ(z_k) + (1 - y_k) · log(1 - σ(z_k)) ],  k = 1, 2
 (น้ำหนักของ 2 งานเท่ากัน ตามบทความ Cao, Mirjalili, Raschka 2020)
 
 สิ่งที่ตรวจแล้ว:
-1. **เทียบกับ package ของผู้เขียน**: test `test_loss_levels_and_labels_match_coral_pytorch` (tests/coral/test_core.py)
+1. **เทียบกับ package ของผู้เขียน**: test `test_loss_levels_and_labels_match_coral_pytorch` (tests/studies/coral/test_core.py)
    เทียบ loss, การแปลง label เป็นระดับ และการแปลงความน่าจะเป็นเป็น label กับ coral-pytorch 1.4.0 ได้ค่าตรงกัน (ผ่าน)
 2. **rank consistency**: bias ต้องเรียง b_1 ≥ b_2 ทุกโมเดลของ ChronoBERT-CORAL ทั้ง 81 โมเดลเรียงถูก
    และ network ทุก seed ทุกแถวเรียงถูก (results/coral/networks/biases.csv: 0 แถวที่ไม่เรียง)
@@ -181,4 +181,4 @@ input เหมือนข้อ 2.1 แต่ใช้ ChronoBERT รุ่น
 ระดับ (P_N + P_H, P_H) ใช้ CORAL loss แบบเดียวกัน (สูตรข้อ 4 ใช้ได้กับ y_k ที่เป็นค่าระหว่าง 0-1)
 train ด้วยประโยคก่อนปี 2010 จำนวน 144,211 ประโยค (มากกว่า label คนก่อนปี 2010 ประมาณ 100 เท่า)
 tune learning rate {1e-5, 2e-5, 4e-5} × epochs {1, 2} โดยใช้ปี 1994-2006 train และ 2007-2009 validate
-รายละเอียดใน docs/design/2026-10-21-tests-and-distill-design.md
+รายละเอียดใน docs/studies/3_sigtests_distill/2026-10-21-tests-and-distill-design.md

@@ -8,7 +8,7 @@ Writes:  results/study4/preds_T2_<version>.csv, comparison_T2.csv, post_cutoff_T
 Run:     python -m fed_news.studies.simple_model.run_simple_model      (CPU, about 5 minutes)
 
 Details: Study 4, section 4: does the Haiku news index improve FOMC decision forecasts over the no-news model?
-(docs/design/2026-10-12-study4-haiku-index-tuned-design.md)
+(docs/studies/1_study4/2026-10-12-study4-haiku-index-tuned-design.md)
 
 Penalised ordered logit (models/walk_forward.run_spec) on identical meetings for S+M, S+M+H (Haiku stance), S+M+C
 (ChronoBERT stance, leak-free reference) and the placebo and shuffled controls. Primary: one-sided HLN
