@@ -186,3 +186,16 @@ def test_run_spec_can_save_class_probabilities_without_changing_forecasts():
     assert np.allclose(p.sum(1), 1) and (p > 0).all()
     assert np.array_equal(out["class_pred"], p.argmax(1))
     assert out[plain.columns].equals(plain)
+
+
+def test_placebo_shuffles_the_columns_named_in_news_cols_and_by_default_only_the_n_columns():
+    df = synthetic(100)
+    df["x_news"] = df["n_stance"]  # carries the signal but is not one of panels.N_COLS
+    cols = panels.S_COLS + ["x_news"]
+    run = lambda spec: wf.run_spec(df, spec, "2002-01-01", require_prereg=False, proba=True)
+    probs = lambda p: p[["p_cut", "p_hold", "p_hike"]].to_numpy()
+    real = run(wf.Spec("real", "T2", "primary", cols))
+    named = run(wf.Spec("placebo", "T2", "primary", cols, placebo=True, news_cols=["x_news"]))
+    default = run(wf.Spec("placebo", "T2", "primary", cols, placebo=True))
+    assert not np.allclose(probs(named), probs(real))
+    assert np.allclose(probs(default), probs(real))

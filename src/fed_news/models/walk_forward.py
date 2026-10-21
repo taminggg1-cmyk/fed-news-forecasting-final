@@ -23,13 +23,15 @@ from fed_news.features.panels import M_COLS, N_COLS, S_COLS, TAYLOR_COLS
 
 @dataclass
 class Spec:
-    """One model version: name, task, kind (rw, taylor, primary), columns, and placebo / shuffled flags."""
+    """One model version: name, task, kind (rw, taylor, primary), columns, and placebo / shuffled flags.
+    news_cols names the columns the placebo shuffles; None means the N columns."""
     name: str
     task: str
     kind: str
     cols: list[str] = field(default_factory=list)
     placebo: bool = False
     shuffle_labels: bool = False
+    news_cols: list[str] | None = None
 
 
 def ladder(task: str) -> list[Spec]:
@@ -101,7 +103,8 @@ def run_spec(df: pd.DataFrame, spec: Spec, test_start: str, test_end: str | None
     y_change, y_class = df["y_change"].to_numpy(float), df["y_class"].to_numpy(int)
     lag, y_level = df["s_rate_lag"].to_numpy(float), df["y_level"].to_numpy(float)
     X = df[spec.cols].to_numpy(float) if spec.cols else None
-    ncols = [spec.cols.index(c) for c in spec.cols if c in N_COLS]
+    news = N_COLS if spec.news_cols is None else spec.news_cols
+    ncols = [spec.cols.index(c) for c in spec.cols if c in news]
     rng = np.random.default_rng(seed)
     out = []
     for i in test:
