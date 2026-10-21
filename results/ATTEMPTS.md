@@ -34,13 +34,29 @@ The full write-ups are in that repository. Only the headline primary result is r
 | 11 | CORAL amendment 3 (declared after the full-sample p-values): same tests on meetings from 2010 | as attempts 9 and 10 | logit Ho p = 0.0498 (Holm over 2: 0.0997); networks: TFT + Ho p = 0.012 (Holm over 6: 0.073) | not supported |
 | 12 | **Haiku-distilled ChronoBERT** (design 2026-10-21, Part B; declared before the run, chosen after attempts 9-11): ChronoBERT 2009 trained on Haiku's probabilities for 144,211 pre-2010 sentences, frozen, reads 2010 onward alone | Clark-West, one test, ordered logit, 135 meetings from 2010 | p = 0.220 (placebo 0.105, shuffled 0.930, not void). Log loss 0.356 to 0.320, accuracy 83.7% to 85.9% (Haiku ordinal itself: 0.317, 85.9%). Full period: p = 0.157 | not supported |
 | 12b | Same tone in the CORAL LSTM/GRU/TFT (declared secondary part of attempt 12) | Newey-West (8 lags) on log loss, 134 scheduled meetings from 2010, Holm over 3 | **TFT: p = 0.0017, Holm p = 0.0050**; LSTM 0.110 (Holm 0.220); GRU 0.167 (Holm 0.220). TFT log loss 0.403 to 0.318, accuracy 88.8% to 89.6%. Small-sample checks for TFT: fixed-b 0.0061, fixed-m 0.0117, RPS 0.0056. Placebo reading: TFT real tone vs its placebo p = 0.082 (placebo vs S+M 0.237), so the gain is not shown to come from the tone's content; LSTM real vs placebo p = 0.032 | **TFT significant against S+M; not significant against its placebo** |
+| 14 | **Distilled tone split by document type** (design 2026-10-21, docs/studies/5_doctype/; declared before the run, chosen after attempts 1-12b): the same distilled tone as attempt 12 as 6 columns (statements and press conferences, minutes, speeches; level and change) | Clark-West, one test, ordered logit, 135 meetings from 2010 | **p = 0.0100** (placebo 0.456, shuffled 0.933, not void). Log loss 0.356 to 0.322, accuracy 83.7% to 85.9%; DM-HLN on log loss p = 0.032, Newey-West (8 lags) 0.061. Against the single distilled tone (S+M+Hd: log loss 0.320, accuracy 85.9%): Clark-West p = 0.071, DM-HLN on log loss p = 0.544, so the split is not shown to beat the single tone. Full period (no rule): p = 0.0102, placebo 0.914 | **supported** (exploratory; 14th attempt) |
 
 Supporting facts for reading the Haiku results (from Study 4):
 - Haiku recalls 87.8% of FOMC decisions from the date alone.
 - In Study 4, its gain over ChronoBERT was not larger on the meetings it recalled (p = 0.378).
 - In the CORAL study the same memory check gave p = 0.205 (full sample) and 0.132 (from 2010).
 
+Notes on attempt 14:
+- Its network part (declared secondary, Holm over 3) is still running; it will be added as row 14b.
+- In `results/doctype/logit/verdict.json` the "full" block repeats the decision and wording template of the primary
+  test, which says "from 2010". The full period has no rule attached; only the from-2010 decision counts.
+
 ## C. Exploratory checks, done after the results (they test no new claim)
+
+- **Why the split tone's Clark-West p is much lower than the single tone's** (attempt 14 against attempt 12, from
+  2010; chosen after both results).
+  - The two tones lower the mean log loss by about the same amount: 0.034 (split) and 0.036 (single) per meeting.
+  - The split tone's gain is steadier: the standard deviation of the per-meeting log-loss gain is 0.21, against 0.35
+    for the single tone.
+  - The single tone's largest losses in the Clark-West statistic were the two emergency meetings of March 2020
+    (2020-03-03 and 2020-03-15).
+  - Without those two meetings, Clark-West p is 0.0098 for the split tone and 0.058 for the single tone. The split
+    tone's result does not depend on them.
 
 - **Romano-Wolf correction instead of Holm** (2026-10-21, scratch script): the 6 network tests are only weakly correlated (mostly −0.5 to +0.5). The Romano-Wolf adjusted p-values were larger than Holm's for the best tests: LSTM + Ho 0.180 vs 0.145; TFT + Ho 0.210 vs 0.163. A correlation-aware correction does not rescue any test.
 - **Literature tests on the saved forecasts** (design 2026-10-21, Part A; full tables in results/sigtests/).

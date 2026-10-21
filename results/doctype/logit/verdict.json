@@ -1,0 +1,66 @@
+{
+  "s_m_equals_coral": true,
+  "from2010": {
+    "start": "2010-01-01",
+    "n_test_meetings": 135,
+    "first": "2010-01-27",
+    "last": "2026-09-16",
+    "n_rate_moves": 32,
+    "primary_clark_west_p": 0.010048365718570818,
+    "placebo_cw_p": 0.45626302876307545,
+    "shuffled_cw_p": 0.9327526845395737,
+    "decision": "supported",
+    "wording": "in this exploratory attempt, the distilled tone split by document type improved ordered-logit forecasts of FOMC decisions from 2010 (p = 0.01)",
+    "split_vs_single": {
+      "clark_west_p": 0.07057291288462242,
+      "dm_logloss_p": 0.5436358056035788,
+      "nw8_logloss_p": 0.5403994445957987,
+      "log_loss": 0.3217398115766847,
+      "accuracy": 0.8592592592592593,
+      "mcnemar_fixes": 1,
+      "mcnemar_breaks": 1
+    }
+  },
+  "full": {
+    "start": null,
+    "n_test_meetings": 212,
+    "first": "2001-01-03",
+    "last": "2026-09-16",
+    "n_rate_moves": 72,
+    "primary_clark_west_p": 0.01024592801790758,
+    "placebo_cw_p": 0.9144131996841564,
+    "shuffled_cw_p": 0.9929770530156518,
+    "decision": "supported",
+    "wording": "in this exploratory attempt, the distilled tone split by document type improved ordered-logit forecasts of FOMC decisions from 2010 (p = 0.0102)",
+    "split_vs_single": {
+      "clark_west_p": 0.04684407776222543,
+      "dm_logloss_p": 0.5747177155829807,
+      "nw8_logloss_p": 0.5708300581397391,
+      "log_loss": 0.2694117668622233,
+      "accuracy": 0.8867924528301887,
+      "mcnemar_fixes": 1,
+      "mcnemar_breaks": 1
+    }
+  },
+  "primary": {
+    "start": "2010-01-01",
+    "n_test_meetings": 135,
+    "first": "2010-01-27",
+    "last": "2026-09-16",
+    "n_rate_moves": 32,
+    "primary_clark_west_p": 0.010048365718570818,
+    "placebo_cw_p": 0.45626302876307545,
+    "shuffled_cw_p": 0.9327526845395737,
+    "decision": "supported",
+    "wording": "in this exploratory attempt, the distilled tone split by document type improved ordered-logit forecasts of FOMC decisions from 2010 (p = 0.01)",
+    "split_vs_single": {
+      "clark_west_p": 0.07057291288462242,
+      "dm_logloss_p": 0.5436358056035788,
+      "nw8_logloss_p": 0.5403994445957987,
+      "log_loss": 0.3217398115766847,
+      "accuracy": 0.8592592592592593,
+      "mcnemar_fixes": 1,
+      "mcnemar_breaks": 1
+    }
+  }
+}
