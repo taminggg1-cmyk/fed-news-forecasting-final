@@ -135,6 +135,7 @@ def fine_tune_soft(net, tok, sents: list[str], lv, seed: int, device: str, lr: f
             scaler.update()
         if on_epoch is not None:
             on_epoch(epoch, net)
+    net.zero_grad(set_to_none=True)  # the gradients would otherwise stay on the GPU with the model
     return net
 
 
@@ -172,9 +173,9 @@ def _new_net():
     return cc.StanceNetCoral(AutoModel.from_pretrained(name)).cuda(), AutoTokenizer.from_pretrained(name)
 
 
-def _free(*objs) -> None:
-    """Release GPU memory between models."""
-    del objs
+def _release() -> None:
+    """Return freed GPU memory to the device. The caller must drop its own references (del net, tok) first: on a
+    6 GB card a second model left in memory spills into shared system memory and slows training several-fold."""
     gc.collect()
     torch.cuda.empty_cache()
 
@@ -196,6 +197,7 @@ def tune() -> dict:
 
         def evaluate(epoch, net):
             lp = score_sorted(net, tok, texts_va, "cuda")
+            torch.cuda.empty_cache()  # drop the scoring batches' cache before training continues
             new.append({"lr": lr, "epochs": epoch, "val_ce": soft_cross_entropy(q_va, lp),
                         **{f"val_{k}": v for k, v in fidelity(q_va, lp).items() if k != "soft_cross_entropy"},
                         "n_train": len(tr), "n_valid": len(va)})
@@ -205,7 +207,8 @@ def tune() -> dict:
                        MAX_EPOCHS, on_epoch=evaluate)
         rows += new
         pd.DataFrame(rows).to_csv(path, index=False)
-        _free(net, tok)
+        del net, tok, evaluate
+        _release()
     best = pick_best(rows)
     settings = {**best, "vintage": VINTAGE, "base_model": model_name(VINTAGE), "seed": SEED,
                 "batch": config.STANCE_BATCH, "max_length": config.STANCE_MAXLEN, "weight_decay": 0.01,
@@ -237,7 +240,8 @@ def final() -> None:
         part.to_pickle(out.with_name(out.name + ".tmp"))
         out.with_name(out.name + ".tmp").replace(out)
         print(f"{name}: trained on {len(tr)}, scored {len(part)}", flush=True)
-        _free(net, tok)
+        del net, tok
+        _release()
 
 
 def tone() -> pd.DataFrame:

@@ -131,3 +131,11 @@ def test_fidelity_reports_correlation_cross_entropy_and_agreement():
     f = cd.fidelity(q, cd.soft_levels(q))
     assert np.isclose(f["tone_correlation"], 1.0) and np.isclose(f["agreement"], 1.0)
     assert f["n"] == 4 and np.isclose(f["soft_cross_entropy"], cd.soft_cross_entropy(q, cd.soft_levels(q)))
+
+
+def test_soft_fine_tune_leaves_no_gradients_on_the_model():
+    net, tok = _tiny()
+    texts = ["raise hike rates", "cut ease rates"] * 4
+    q = np.array([[0.05, 0.15, 0.8], [0.8, 0.15, 0.05]] * 4)
+    cd.fine_tune_soft(net, tok, texts, cd.soft_levels(q), seed=0, device="cpu", lr=1e-3, epochs=1, batch=4)
+    assert all(p.grad is None for p in net.parameters())
