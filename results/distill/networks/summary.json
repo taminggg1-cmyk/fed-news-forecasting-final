@@ -1,0 +1,29 @@
+{
+  "primary_from2010_scheduled": {
+    "lstm": {
+      "nw_p": 0.10995643260278753,
+      "nw_p_holm": 0.21991286520557507,
+      "logloss_diff_mean": 0.15458810193601888
+    },
+    "gru": {
+      "nw_p": 0.16734318326912934,
+      "nw_p_holm": 0.21991286520557507,
+      "logloss_diff_mean": 0.10954212939443632
+    },
+    "tft": {
+      "nw_p": 0.0016539051843791341,
+      "nw_p_holm": 0.004961715553137402,
+      "logloss_diff_mean": 0.08422870394772637
+    }
+  },
+  "gain_from_tone_content_from2010": {
+    "lstm": true,
+    "gru": false,
+    "tft": false
+  },
+  "gain_from_tone_content_full": {
+    "lstm": true,
+    "gru": false,
+    "tft": false
+  }
+}

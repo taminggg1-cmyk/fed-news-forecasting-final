@@ -47,6 +47,18 @@ full,ordered logit,S+M+H,Haiku (Study 4),212,ranked probability score,fixed-m DM
 full,ordered logit,S+M+H,Haiku (Study 4),212,log score,Giacomini-White conditional,0.021693282213630392,0.9361662774433852,0.6262014599044304,two
 full,ordered logit,S+M+H,Haiku (Study 4),212,squared rate error,Clark-West (plain variance),,1.2308928815694562,0.10918146516197957,one
 full,ordered logit,S+M+H,Haiku (Study 4),212,squared rate error,"Clark-West, Newey-West 8 lags",,1.3339376703936614,0.09111214228831188,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,log score,"Newey-West DM, 8 lags",0.02703128166473702,1.1884555511128398,0.11732699085402187,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,log score,fixed-b DM (Coroneo-Iacone),0.02703128166473702,1.1997708247262633,0.12790999999999997,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,log score,fixed-m DM (Coroneo-Iacone),0.02703128166473702,1.151313153244869,0.13819356318223575,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,squared rate error,"Newey-West DM, 8 lags",6.809512959435206e-05,0.15482941783202378,0.43847789939090465,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,squared rate error,fixed-b DM (Coroneo-Iacone),6.809512959435206e-05,0.16898816952104273,0.43557,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,squared rate error,fixed-m DM (Coroneo-Iacone),6.809512959435206e-05,0.1752659790140269,0.4321843152734921,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,ranked probability score,"Newey-West DM, 8 lags",0.005745230652053247,1.1115731327056628,0.13316086485761436,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,ranked probability score,fixed-b DM (Coroneo-Iacone),0.005745230652053247,1.1327436288755246,0.14114000000000004,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,ranked probability score,fixed-m DM (Coroneo-Iacone),0.005745230652053247,1.07928798108674,0.15290153309197096,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,log score,Giacomini-White conditional,0.02703128166473702,1.293621799123754,0.5237132906978502,two
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,squared rate error,Clark-West (plain variance),,1.0083846641119423,0.15663491616654135,one
+full,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,212,squared rate error,"Clark-West, Newey-West 8 lags",,1.2219008985176694,0.11087255282127284,one
 full,ordered logit,placebo-Co,PLACEBO of ChronoBERT-CORAL,212,log score,"Newey-West DM, 8 lags",0.0027152020003334935,0.14758737338508637,0.44133421027269015,one
 full,ordered logit,placebo-Co,PLACEBO of ChronoBERT-CORAL,212,log score,fixed-b DM (Coroneo-Iacone),0.0027152020003334935,0.14426613555813664,0.44521999999999995,one
 full,ordered logit,placebo-Co,PLACEBO of ChronoBERT-CORAL,212,log score,fixed-m DM (Coroneo-Iacone),0.0027152020003334935,0.13418782263317203,0.4479581558050443,one
@@ -71,6 +83,18 @@ full,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,212,ranked probability sc
 full,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,212,log score,Giacomini-White conditional,0.004340379552698342,0.06448405524730091,0.9682722050966432,two
 full,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,212,squared rate error,Clark-West (plain variance),,-0.30712609979272976,0.62062630382022,one
 full,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,212,squared rate error,"Clark-West, Newey-West 8 lags",,-0.30786372628800907,0.6209069858544951,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,log score,"Newey-West DM, 8 lags",0.015362542641871242,1.019685467940387,0.15393882793843006,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,log score,fixed-b DM (Coroneo-Iacone),0.015362542641871242,1.0305372802617192,0.16374999999999995,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,log score,fixed-m DM (Coroneo-Iacone),0.015362542641871242,0.9804071365084829,0.1750042826226823,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,squared rate error,"Newey-West DM, 8 lags",5.315108971096716e-05,0.27278408840274887,0.39250959574248123,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,squared rate error,fixed-b DM (Coroneo-Iacone),5.315108971096716e-05,0.27405470034636986,0.39648000000000005,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,squared rate error,fixed-m DM (Coroneo-Iacone),5.315108971096716e-05,0.26882622314996185,0.3967640657938014,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,ranked probability score,"Newey-West DM, 8 lags",0.0008957037647470532,0.3150485297504794,0.37636240359244233,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,ranked probability score,fixed-b DM (Coroneo-Iacone),0.0008957037647470532,0.3191039881887931,0.37978,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,ranked probability score,fixed-m DM (Coroneo-Iacone),0.0008957037647470532,0.329503820703122,0.3742863728934134,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,log score,Giacomini-White conditional,0.015362542641871242,1.0041274652851815,0.6052802333081427,two
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,squared rate error,Clark-West (plain variance),,1.1735154319703243,0.1202945860501734,one
+full,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,212,squared rate error,"Clark-West, Newey-West 8 lags",,1.6843357489661654,0.046058400133201505,one
 full,lstm,S+M+Co,ChronoBERT-CORAL,206,log score,"Newey-West DM, 8 lags",0.0520554402109326,1.0463915052059298,0.14769015657347528,one
 full,lstm,S+M+Co,ChronoBERT-CORAL,206,log score,fixed-b DM (Coroneo-Iacone),0.0520554402109326,0.9603191416034967,0.18077,one
 full,lstm,S+M+Co,ChronoBERT-CORAL,206,log score,fixed-m DM (Coroneo-Iacone),0.0520554402109326,0.826402105137887,0.21392664385494642,one
@@ -335,6 +359,18 @@ from2010,ordered logit,S+M+H,Haiku (Study 4),135,ranked probability score,fixed-
 from2010,ordered logit,S+M+H,Haiku (Study 4),135,log score,Giacomini-White conditional,0.03548639927453575,1.6939402435577668,0.4287119109944937,two
 from2010,ordered logit,S+M+H,Haiku (Study 4),135,squared rate error,Clark-West (plain variance),,1.3907882268271758,0.08214482711725457,one
 from2010,ordered logit,S+M+H,Haiku (Study 4),135,squared rate error,"Clark-West, Newey-West 8 lags",,1.284844929705685,0.09942323912626527,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,log score,"Newey-West DM, 8 lags",0.03620441536487044,1.042442869154854,0.1486031999506734,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,log score,fixed-b DM (Coroneo-Iacone),0.03620441536487044,1.045516694928604,0.16164999999999996,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,log score,fixed-m DM (Coroneo-Iacone),0.03620441536487044,0.9415525424017249,0.18430528160790405,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,squared rate error,"Newey-West DM, 8 lags",6.0924807428426394e-05,0.1271453669310189,0.44941267259503026,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,squared rate error,fixed-b DM (Coroneo-Iacone),6.0924807428426394e-05,0.13371520218204716,0.44752000000000003,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,squared rate error,fixed-m DM (Coroneo-Iacone),6.0924807428426394e-05,0.1425653607595215,0.4447325130506563,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,ranked probability score,"Newey-West DM, 8 lags",0.006642345855706075,0.861928573570311,0.19436341207771424,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,ranked probability score,fixed-b DM (Coroneo-Iacone),0.006642345855706075,0.8639473250701413,0.20637000000000005,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,ranked probability score,fixed-m DM (Coroneo-Iacone),0.006642345855706075,0.7735240011611302,0.22855411894122613,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,log score,Giacomini-White conditional,0.03620441536487044,1.1035331739346674,0.5759314781157533,two
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,squared rate error,Clark-West (plain variance),,0.775369597669295,0.21906064729686892,one
+from2010,ordered logit,S+M+Hd,Haiku-distilled ChronoBERT,135,squared rate error,"Clark-West, Newey-West 8 lags",,0.8387736113886816,0.2007981807828898,one
 from2010,ordered logit,placebo-Co,PLACEBO of ChronoBERT-CORAL,135,log score,"Newey-West DM, 8 lags",0.017115200280963014,0.6341772254703555,0.2629825843889063,one
 from2010,ordered logit,placebo-Co,PLACEBO of ChronoBERT-CORAL,135,log score,fixed-b DM (Coroneo-Iacone),0.017115200280963014,0.6299615667068623,0.27293999999999996,one
 from2010,ordered logit,placebo-Co,PLACEBO of ChronoBERT-CORAL,135,log score,fixed-m DM (Coroneo-Iacone),0.017115200280963014,0.6091945816786598,0.2779909791668642,one
@@ -359,6 +395,18 @@ from2010,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,135,ranked probabilit
 from2010,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,135,log score,Giacomini-White conditional,0.022117771349206304,1.1202855509569674,0.5711275150231345,two
 from2010,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,135,squared rate error,Clark-West (plain variance),,1.1424266621443149,0.12663835698120673,one
 from2010,ordered logit,placebo-Ho,PLACEBO of Haiku ordinal,135,squared rate error,"Clark-West, Newey-West 8 lags",,1.2638652713199874,0.1031391943401534,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,log score,"Newey-West DM, 8 lags",0.020675532083698742,0.8965052788029629,0.18499148112065478,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,log score,fixed-b DM (Coroneo-Iacone),0.020675532083698742,0.9023670274467152,0.19643,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,log score,fixed-m DM (Coroneo-Iacone),0.020675532083698742,0.8986261579471008,0.19498816022801035,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,squared rate error,"Newey-West DM, 8 lags",9.784075652504024e-05,0.4219616111881943,0.33652651903639275,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,squared rate error,fixed-b DM (Coroneo-Iacone),9.784075652504024e-05,0.41960694456871434,0.34307,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,squared rate error,fixed-m DM (Coroneo-Iacone),9.784075652504024e-05,0.39719714045656435,0.34978374982583094,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,ranked probability score,"Newey-West DM, 8 lags",-0.0006237835326108434,-0.16033437140836324,0.5636911576849168,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,ranked probability score,fixed-b DM (Coroneo-Iacone),-0.0006237835326108434,-0.15900088332661877,0.55642,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,ranked probability score,fixed-m DM (Coroneo-Iacone),-0.0006237835326108434,-0.1524361080034257,0.5590626251182396,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,log score,Giacomini-White conditional,0.020675532083698742,0.9130992073055564,0.6334655864071904,two
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,squared rate error,Clark-West (plain variance),,1.2589175540422406,0.10403005632375761,one
+from2010,ordered logit,placebo-Hd,PLACEBO of Haiku-distilled ChronoBERT,135,squared rate error,"Clark-West, Newey-West 8 lags",,1.1637623395978527,0.12226016905272385,one
 from2010,lstm,S+M+Co,ChronoBERT-CORAL,134,log score,"Newey-West DM, 8 lags",0.017015380625599926,0.35879600385084687,0.3598738511805013,one
 from2010,lstm,S+M+Co,ChronoBERT-CORAL,134,log score,fixed-b DM (Coroneo-Iacone),0.017015380625599926,0.3529125238296529,0.36802,one
 from2010,lstm,S+M+Co,ChronoBERT-CORAL,134,log score,fixed-m DM (Coroneo-Iacone),0.017015380625599926,0.32273780984727746,0.3767702638678522,one

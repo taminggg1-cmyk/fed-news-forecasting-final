@@ -31,11 +31,11 @@
         "spa_p_upper": 0.068,
         "stepm_superior": []
       },
-      "ordered logit, S+M+Co, S+M+Ho": {
+      "ordered logit, S+M+Co, S+M+Ho, S+M+Hd": {
         "n": 212,
-        "spa_p_lower": 0.1137,
-        "spa_p_consistent": 0.1137,
-        "spa_p_upper": 0.1137,
+        "spa_p_lower": 0.1274,
+        "spa_p_consistent": 0.1274,
+        "spa_p_upper": 0.1274,
         "stepm_superior": []
       }
     },
@@ -46,14 +46,16 @@
           "S+M+Co",
           "S+M+Ho",
           "S+M+C",
-          "S+M+H"
+          "S+M+H",
+          "S+M+Hd"
         ],
         "pvalues": {
-          "S+M+C": 0.585,
-          "S+M": 0.585,
-          "S+M+H": 0.585,
-          "S+M+Co": 0.585,
-          "S+M+Ho": 1.0
+          "S+M+C": 0.678,
+          "S+M": 0.678,
+          "S+M+H": 0.678,
+          "S+M+Co": 0.678,
+          "S+M+Ho": 0.9112,
+          "S+M+Hd": 1.0
         }
       },
       "lstm": {
@@ -135,11 +137,11 @@
         "spa_p_upper": 0.2247,
         "stepm_superior": []
       },
-      "ordered logit, S+M+Co, S+M+Ho": {
+      "ordered logit, S+M+Co, S+M+Ho, S+M+Hd": {
         "n": 135,
-        "spa_p_lower": 0.1153,
-        "spa_p_consistent": 0.1153,
-        "spa_p_upper": 0.1153,
+        "spa_p_lower": 0.1413,
+        "spa_p_consistent": 0.1413,
+        "spa_p_upper": 0.1413,
         "stepm_superior": []
       }
     },
@@ -150,13 +152,15 @@
           "S+M+Co",
           "S+M+Ho",
           "S+M+C",
-          "S+M+H"
+          "S+M+H",
+          "S+M+Hd"
         ],
         "pvalues": {
-          "S+M": 0.6271,
-          "S+M+C": 0.7365,
-          "S+M+Co": 0.7365,
-          "S+M+H": 0.7365,
+          "S+M": 0.706,
+          "S+M+C": 0.8194,
+          "S+M+Co": 0.8194,
+          "S+M+H": 0.8221,
+          "S+M+Hd": 0.8221,
           "S+M+Ho": 1.0
         }
       },
