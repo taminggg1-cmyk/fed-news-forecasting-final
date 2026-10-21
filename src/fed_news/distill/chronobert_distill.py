@@ -103,7 +103,9 @@ def plan(s: pd.DataFrame) -> dict[str, dict[str, np.ndarray]]:
 
 
 def pick_best(rows: list[dict]) -> dict:
-    """Lowest validation loss; settings within TIE of the lowest go to fewer epochs, then the lower learning rate."""
+    """Lowest validation loss; settings within TIE of the lowest go to fewer epochs, then the lower learning rate.
+    A setting whose loss is NaN (training diverged) never wins."""
+    rows = [r for r in rows if np.isfinite(r["val_ce"])]
     best = min(r["val_ce"] for r in rows)
     near = [r for r in rows if r["val_ce"] <= best + TIE]
     r = min(near, key=lambda r: (r["epochs"], r["lr"]))

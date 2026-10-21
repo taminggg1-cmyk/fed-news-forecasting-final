@@ -139,3 +139,9 @@ def test_soft_fine_tune_leaves_no_gradients_on_the_model():
     q = np.array([[0.05, 0.15, 0.8], [0.8, 0.15, 0.05]] * 4)
     cd.fine_tune_soft(net, tok, texts, cd.soft_levels(q), seed=0, device="cpu", lr=1e-3, epochs=1, batch=4)
     assert all(p.grad is None for p in net.parameters())
+
+
+def test_a_diverged_setting_with_nan_loss_never_wins():
+    rows = [{"lr": 4e-5, "epochs": 2, "val_ce": float("nan")}, {"lr": 2e-5, "epochs": 2, "val_ce": 0.83},
+            {"lr": 1e-5, "epochs": 1, "val_ce": 0.84}]
+    assert cd.pick_best(rows) == {"lr": 2e-5, "epochs": 2}
