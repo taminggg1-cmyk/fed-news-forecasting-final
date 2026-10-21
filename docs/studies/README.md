@@ -10,6 +10,7 @@ were computed; the commit history shows the dates. Every attempt and its primary
 | [`2_coral/`](2_coral/) | CORAL study: ordinal tone readers (ChronoBERT-CORAL "Co", Haiku ordinal "Ho") and CORAL networks; amendment 3 adds the meetings from 2010 | 9-11 | design, implementation plan | `src/fed_news/studies/coral/` | `results/coral/` |
 | [`3_sigtests_distill/`](3_sigtests_distill/) | Part A: tests used in the literature, run on the saved forecasts (exploratory). Part B: Haiku-distilled ChronoBERT ("Hd") | 12, 12b | design (Parts A and B) | `src/fed_news/studies/sigtests/`, `src/fed_news/studies/distill/` | `results/sigtests/`, `results/distill/` |
 | [`4_text_vs_economy/`](4_text_vs_economy/) | Fed text against a Taylor-rule baseline without market prices | 13 | design | not built | not run |
+| [`5_doctype/`](5_doctype/) | The distilled tone split by document type (statements and press conferences, minutes, speeches) | 14 | design | `src/fed_news/studies/doctype/` | `results/doctype/` |
 
 ## Paths inside the documents
 
