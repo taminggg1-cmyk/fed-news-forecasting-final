@@ -1,0 +1,21 @@
+{
+  "device": "cuda",
+  "seconds_per_trial_at_last_point": {
+    "lstm": 18.035703659057617,
+    "gru": 11.232744296391806,
+    "tft": 19.443912903467815
+  },
+  "seconds_per_final_fit_50_epochs": {
+    "lstm": 2.145155668258667,
+    "gru": 2.166140079498291,
+    "tft": 7.2785117626190186
+  },
+  "note": "estimate from 3 trials and one 50-epoch fit per architecture, not a bound",
+  "hours_estimate_per_arch": {
+    "lstm": 6.044268327289157,
+    "gru": 4.20345003384131,
+    "tft": 9.142589178173631
+  },
+  "hours_estimate_total_sequential": 19.3903075393041,
+  "ask_user": false
+}

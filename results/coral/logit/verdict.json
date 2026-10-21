@@ -1,0 +1,67 @@
+{
+  "n_test_meetings": 212,
+  "first": "2001-01-03",
+  "last": "2026-09-16",
+  "n_panel_rows": 260,
+  "s_m_equals_study4": true,
+  "primary_clark_west_p": {
+    "S+M+Co": 0.4235746510760321,
+    "S+M+Ho": 0.06635869911472148
+  },
+  "primary_holm_p": {
+    "S+M+Ho": 0.13271739822944295,
+    "S+M+Co": 0.4235746510760321
+  },
+  "S+M+Co": {
+    "placebo_cw_p": 0.6548410831051533,
+    "shuffled_cw_p": 0.9939606325763249,
+    "decision": "not supported",
+    "wording": "not significant at 5% in this exploratory study (p = 0.424, Holm-adjusted); this does not show that the ChronoBERT-CORAL tone does not help"
+  },
+  "S+M+Ho": {
+    "placebo_cw_p": 0.620350284435341,
+    "shuffled_cw_p": 0.9933914969156801,
+    "decision": "not supported",
+    "wording": "not significant at 5% in this exploratory study (p = 0.133, Holm-adjusted); this does not show that the Haiku ordinal tone does not help; memory cannot be ruled out: Claude Haiku 5.5 may have seen these meetings' outcomes in training (pre-cutoff skill is not identified)"
+  },
+  "memory_flag_haiku": {
+    "n": 211,
+    "n_indicator": 190,
+    "coef": 0.036692803375490364,
+    "se": 0.044515198392090415,
+    "p_one_sided": 0.20489141626669038,
+    "flag": false
+  },
+  "study4_reference": {
+    "S+M": {
+      "log_loss": 0.2937619378951588,
+      "accuracy": 0.8679245283018868,
+      "dm_logloss_p": NaN,
+      "clark_west_p": NaN
+    },
+    "S+M+H": {
+      "log_loss": 0.2720686556815285,
+      "accuracy": 0.8915094339622641,
+      "dm_logloss_p": 0.1444451936966448,
+      "clark_west_p": 0.1097260365256876
+    },
+    "S+M+C": {
+      "log_loss": 0.2814416796943866,
+      "accuracy": 0.8726415094339622,
+      "dm_logloss_p": 0.2068001302274098,
+      "clark_west_p": 0.1889959843121329
+    },
+    "placebo-H": {
+      "log_loss": 0.2913148415373827,
+      "accuracy": 0.8679245283018868,
+      "dm_logloss_p": 0.4410611318580375,
+      "clark_west_p": 0.6755743920722113
+    },
+    "shuffled-H": {
+      "log_loss": 0.8796097956040406,
+      "accuracy": 0.660377358490566,
+      "dm_logloss_p": 1.0,
+      "clark_west_p": 0.9927434716594034
+    }
+  }
+}

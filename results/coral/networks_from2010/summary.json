@@ -1,0 +1,42 @@
+{
+  "start": "2010-01-01",
+  "n_meetings": 135,
+  "results": {
+    "lstm S+M+Co": {
+      "nw_p": 0.3598738511805013,
+      "nw_p_holm": 0.949368891165363,
+      "logloss_diff_mean": 0.017015380625599916,
+      "gain_from_tone_content": false
+    },
+    "lstm S+M+Ho": {
+      "nw_p": 0.10419511380351354,
+      "nw_p_holm": 0.5209755690175677,
+      "logloss_diff_mean": 0.15129234382437082,
+      "gain_from_tone_content": false
+    },
+    "gru S+M+Co": {
+      "nw_p": 0.316456297055121,
+      "nw_p_holm": 0.949368891165363,
+      "logloss_diff_mean": 0.06398729552251946,
+      "gain_from_tone_content": false
+    },
+    "gru S+M+Ho": {
+      "nw_p": 0.13997815648965295,
+      "nw_p_holm": 0.5599126259586118,
+      "logloss_diff_mean": 0.10283617143873221,
+      "gain_from_tone_content": false
+    },
+    "tft S+M+Co": {
+      "nw_p": 0.5741206328602861,
+      "nw_p_holm": 0.949368891165363,
+      "logloss_diff_mean": -0.007177800449412327,
+      "gain_from_tone_content": false
+    },
+    "tft S+M+Ho": {
+      "nw_p": 0.012093478969189442,
+      "nw_p_holm": 0.07256087381513665,
+      "logloss_diff_mean": 0.06358701588876506,
+      "gain_from_tone_content": false
+    }
+  }
+}

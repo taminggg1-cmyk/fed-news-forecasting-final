@@ -1,0 +1,19 @@
+{
+  "n_sentences": 343742,
+  "n_unlabelled": 100,
+  "share_unlabelled": 0.0002909158613145906,
+  "n_rows_normalised": 0,
+  "n_failed_first": 7,
+  "tokens": {
+    "input": 22207517,
+    "output": 4051592
+  },
+  "n_docs_without_labels": 0,
+  "mean_p": {
+    "dovish": 0.2207,
+    "neutral": 0.6391,
+    "hawkish": 0.1401
+  },
+  "argmax_agreement_with_study4_labels": 0.8884310147635304,
+  "doc_tone_correlation_with_study4": 0.881358263588048
+}

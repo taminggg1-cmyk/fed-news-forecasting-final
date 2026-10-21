@@ -1,0 +1,35 @@
+{
+  "start": "2010-01-01",
+  "n_test_meetings": 135,
+  "first": "2010-01-27",
+  "last": "2026-09-16",
+  "n_rate_moves": 32,
+  "primary_clark_west_p": {
+    "S+M+Co": 0.19037912308735883,
+    "S+M+Ho": 0.0498291138584841
+  },
+  "primary_holm_p": {
+    "S+M+Ho": 0.0996582277169682,
+    "S+M+Co": 0.19037912308735883
+  },
+  "S+M+Co": {
+    "placebo_cw_p": 0.5614528795333857,
+    "shuffled_cw_p": 0.9313233104980501,
+    "decision": "not supported",
+    "wording": "not significant at 5% in this exploratory study (p = 0.19, Holm-adjusted); this does not show that the ChronoBERT-CORAL tone does not help"
+  },
+  "S+M+Ho": {
+    "placebo_cw_p": 0.12752108028240183,
+    "shuffled_cw_p": 0.9302440185746743,
+    "decision": "not supported",
+    "wording": "not significant at 5% in this exploratory study (p = 0.0997, Holm-adjusted); this does not show that the Haiku ordinal tone does not help; memory cannot be ruled out: Claude Haiku 5.5 may have seen these meetings' outcomes in training (pre-cutoff skill is not identified)"
+  },
+  "memory_flag_haiku": {
+    "n": 134,
+    "n_indicator": 127,
+    "coef": 0.1124621991492775,
+    "se": 0.10086798002767636,
+    "p_one_sided": 0.1324371036958576,
+    "flag": false
+  }
+}

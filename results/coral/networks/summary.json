@@ -1,0 +1,38 @@
+{
+  "lstm S+M+Co": {
+    "nw_p": 0.14769015657346896,
+    "nw_p_holm": 0.44307046972040687,
+    "logloss_diff_mean": 0.052055440210934036,
+    "gain_from_tone_content": false
+  },
+  "lstm S+M+Ho": {
+    "nw_p": 0.024216348633862683,
+    "nw_p_holm": 0.1452980918031761,
+    "logloss_diff_mean": 0.17349811757432004,
+    "gain_from_tone_content": true
+  },
+  "gru S+M+Co": {
+    "nw_p": 0.4684074300766399,
+    "nw_p_holm": 0.9368148601532797,
+    "logloss_diff_mean": 0.007082584700861875,
+    "gain_from_tone_content": false
+  },
+  "gru S+M+Ho": {
+    "nw_p": 0.07582398206525776,
+    "nw_p_holm": 0.303295928261031,
+    "logloss_diff_mean": 0.09242678781796519,
+    "gain_from_tone_content": false
+  },
+  "tft S+M+Co": {
+    "nw_p": 0.7574800870471895,
+    "nw_p_holm": 0.9368148601532797,
+    "logloss_diff_mean": -0.02032103295201564,
+    "gain_from_tone_content": false
+  },
+  "tft S+M+Ho": {
+    "nw_p": 0.032532549138788225,
+    "nw_p_holm": 0.16266274569394112,
+    "logloss_diff_mean": 0.08139882709527828,
+    "gain_from_tone_content": false
+  }
+}
