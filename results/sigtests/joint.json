@@ -1,0 +1,213 @@
+{
+  "full": {
+    "spa_stepm": {
+      "networks, registered 6 (Co and Ho x 3)": {
+        "n": 206,
+        "spa_p_lower": 0.0665,
+        "spa_p_consistent": 0.0665,
+        "spa_p_upper": 0.0665,
+        "stepm_superior": []
+      },
+      "networks, Haiku ordinal x 3": {
+        "n": 206,
+        "spa_p_lower": 0.0372,
+        "spa_p_consistent": 0.0372,
+        "spa_p_upper": 0.0372,
+        "stepm_superior": [
+          "lstm S+M+Ho"
+        ]
+      },
+      "networks, ChronoBERT-CORAL x 3": {
+        "n": 206,
+        "spa_p_lower": 0.3906,
+        "spa_p_consistent": 0.3987,
+        "spa_p_upper": 0.3987,
+        "stepm_superior": []
+      },
+      "networks, Study 4 tones (C and H x 3)": {
+        "n": 206,
+        "spa_p_lower": 0.068,
+        "spa_p_consistent": 0.068,
+        "spa_p_upper": 0.068,
+        "stepm_superior": []
+      },
+      "ordered logit, S+M+Co, S+M+Ho": {
+        "n": 212,
+        "spa_p_lower": 0.1137,
+        "spa_p_consistent": 0.1137,
+        "spa_p_upper": 0.1137,
+        "stepm_superior": []
+      }
+    },
+    "model_confidence_set_90": {
+      "ordered logit": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M+C": 0.585,
+          "S+M": 0.585,
+          "S+M+H": 0.585,
+          "S+M+Co": 0.585,
+          "S+M+Ho": 1.0
+        }
+      },
+      "lstm": {
+        "included": [
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M": 0.0986,
+          "S+M+Co": 0.1898,
+          "S+M+C": 0.4947,
+          "S+M+H": 0.8271,
+          "S+M+Ho": 1.0
+        }
+      },
+      "gru": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M+Co": 0.3915,
+          "S+M+H": 0.4312,
+          "S+M": 0.4312,
+          "S+M+C": 0.4312,
+          "S+M+Ho": 1.0
+        }
+      },
+      "tft": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M+H": 0.1721,
+          "S+M+Co": 0.1721,
+          "S+M": 0.1721,
+          "S+M+C": 0.3028,
+          "S+M+Ho": 1.0
+        }
+      }
+    }
+  },
+  "from2010": {
+    "spa_stepm": {
+      "networks, registered 6 (Co and Ho x 3)": {
+        "n": 134,
+        "spa_p_lower": 0.1964,
+        "spa_p_consistent": 0.1964,
+        "spa_p_upper": 0.1964,
+        "stepm_superior": []
+      },
+      "networks, Haiku ordinal x 3": {
+        "n": 134,
+        "spa_p_lower": 0.1419,
+        "spa_p_consistent": 0.1419,
+        "spa_p_upper": 0.1419,
+        "stepm_superior": []
+      },
+      "networks, ChronoBERT-CORAL x 3": {
+        "n": 134,
+        "spa_p_lower": 0.3537,
+        "spa_p_consistent": 0.3588,
+        "spa_p_upper": 0.3588,
+        "stepm_superior": []
+      },
+      "networks, Study 4 tones (C and H x 3)": {
+        "n": 134,
+        "spa_p_lower": 0.2247,
+        "spa_p_consistent": 0.2247,
+        "spa_p_upper": 0.2247,
+        "stepm_superior": []
+      },
+      "ordered logit, S+M+Co, S+M+Ho": {
+        "n": 135,
+        "spa_p_lower": 0.1153,
+        "spa_p_consistent": 0.1153,
+        "spa_p_upper": 0.1153,
+        "stepm_superior": []
+      }
+    },
+    "model_confidence_set_90": {
+      "ordered logit": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M": 0.6271,
+          "S+M+C": 0.7365,
+          "S+M+Co": 0.7365,
+          "S+M+H": 0.7365,
+          "S+M+Ho": 1.0
+        }
+      },
+      "lstm": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M": 0.5164,
+          "S+M+Co": 0.5271,
+          "S+M+H": 0.6814,
+          "S+M+C": 0.6814,
+          "S+M+Ho": 1.0
+        }
+      },
+      "gru": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M+H": 0.1182,
+          "S+M": 0.6993,
+          "S+M+Co": 0.7466,
+          "S+M+C": 0.8963,
+          "S+M+Ho": 1.0
+        }
+      },
+      "tft": {
+        "included": [
+          "S+M",
+          "S+M+Co",
+          "S+M+Ho",
+          "S+M+C",
+          "S+M+H"
+        ],
+        "pvalues": {
+          "S+M": 0.1345,
+          "S+M+Co": 0.2304,
+          "S+M+C": 0.3533,
+          "S+M+H": 0.3533,
+          "S+M+Ho": 1.0
+        }
+      }
+    }
+  }
+}
