@@ -67,7 +67,7 @@ def soft_levels(q) -> np.ndarray:
 
 def init_biases_soft(head, lv) -> None:
     """Start the biases at the logits of the mean soft levels of the training rows (clipped to [0.001, 0.999])."""
-    m = np.clip(np.asarray(lv, dtype=float).mean(0), 1e-3, 1 - 1e-3)
+    m = np.clip(np.nanmean(np.asarray(lv, dtype=float), axis=0), 1e-3, 1 - 1e-3)
     with torch.no_grad():
         head.bias.copy_(torch.as_tensor(np.log(m / (1 - m)), dtype=head.bias.dtype))
 
@@ -113,16 +113,18 @@ def pick_best(rows: list[dict]) -> dict:
 
 
 def fine_tune_soft(net, tok, sents: list[str], lv, seed: int, device: str, lr: float, epochs: int,
-                   batch: int = config.STANCE_BATCH, on_epoch=None):
+                   batch: int = config.STANCE_BATCH, on_epoch=None, amp: bool | None = None):
     """AdamW on the CORAL loss with soft level targets: shuffled mini-batches, gradient clipping 1.0, fp16 autocast
-    on the GPU; biases start at the mean soft levels. on_epoch(epoch, net) runs after each epoch."""
+    on the GPU (amp=False for float32); biases start at the mean soft levels. on_epoch(epoch, net) runs after each
+    epoch. A batch whose loss is not finite is skipped; FloatingPointError if the weights end up non-finite."""
     rng = np.random.default_rng(seed)
-    amp = device == "cuda"
+    amp = device == "cuda" if amp is None else amp
     init_biases_soft(net.head, lv)
     net.to(device)
     opt = cc.make_optimizer(net, lr)
     scaler = torch.amp.GradScaler(enabled=amp)
     lv = torch.as_tensor(np.asarray(lv), dtype=torch.float32, device=device)
+    skipped = 0
     for epoch in range(1, epochs + 1):
         net.train()
         for j, ids, mask in cc._batches(tok, sents, batch, rng.permutation(len(sents)), device):
@@ -130,6 +132,9 @@ def fine_tune_soft(net, tok, sents: list[str], lv, seed: int, device: str, lr: f
             with torch.autocast(device, dtype=torch.float16, enabled=amp):
                 logits = net(ids, mask)
             loss = coral_loss(logits.float(), lv[torch.as_tensor(j, device=device)])
+            if not torch.isfinite(loss):
+                skipped += 1
+                continue
             scaler.scale(loss).backward()
             scaler.unscale_(opt)
             nn.utils.clip_grad_norm_(net.parameters(), 1.0)
@@ -138,17 +143,28 @@ def fine_tune_soft(net, tok, sents: list[str], lv, seed: int, device: str, lr: f
         if on_epoch is not None:
             on_epoch(epoch, net)
     net.zero_grad(set_to_none=True)  # the gradients would otherwise stay on the GPU with the model
+    if skipped:
+        print(f"skipped {skipped} batches with a non-finite loss", flush=True)
+    if not all(bool(torch.isfinite(p).all()) for p in net.parameters()):
+        raise FloatingPointError("training diverged: the weights are no longer finite")
     return net
 
 
 def score_sorted(net, tok, texts: list[str], device: str, batch: int = 128) -> np.ndarray:
-    """Level probabilities for each text, batched in order of length (less padding), returned in input order."""
+    """Level probabilities for each text, batched in order of length (less padding), returned in input order. Rows
+    that overflow in fp16 (non-finite) are scored again in float32."""
     net.to(device).eval()
     out = np.zeros((len(texts), 2), dtype=np.float32)
     order = np.argsort([len(t) for t in texts], kind="stable")
     with torch.no_grad(), torch.autocast(device, dtype=torch.float16, enabled=device == "cuda"):
         for j, ids, mask in cc._batches(tok, texts, batch, order, device):
             out[j] = level_probs(net(ids, mask).float())
+    bad = np.flatnonzero(~np.isfinite(out).all(1))
+    if len(bad):
+        with torch.no_grad():
+            for j, ids, mask in cc._batches(tok, texts, 16, bad, device):
+                out[j] = level_probs(net(ids, mask).float())
+        print(f"rescored {len(bad)} rows in float32", flush=True)
     return out
 
 
@@ -220,30 +236,69 @@ def tune() -> dict:
     return settings
 
 
+def _train_model(s: pd.DataFrame, rows, settings: dict):
+    """Train one model with the tuned settings in fp16; if it diverges, train it again in float32."""
+    tr = rows["train"]
+    texts, lv = list(s.loc[tr, "sentence"]), soft_levels(s.loc[tr, PROBS])
+    net, tok = _new_net()
+    try:
+        return fine_tune_soft(net, tok, texts, lv, SEED, "cuda", settings["lr"], settings["epochs"]), tok, "fp16"
+    except FloatingPointError as e:
+        print(f"{e}; training again in float32", flush=True)
+    del net
+    _release()
+    net, tok = _new_net()
+    return fine_tune_soft(net, tok, texts, lv, SEED, "cuda", settings["lr"], settings["epochs"], amp=False), tok, "fp32"
+
+
 def final() -> None:
-    """Train the final model and the two fold models with the tuned settings, save each, and score its sentences."""
+    """Train the final model and the two fold models with the tuned settings, save each, and score its sentences.
+    A saved score file with non-finite rows is repaired: its rows are scored again with the saved model, or the model
+    is trained again when its saved weights are not finite."""
     settings = json.loads((RESULTS / "settings.json").read_text())
     s = load_sentences()
     WORK.mkdir(parents=True, exist_ok=True)
     for name, rows in plan(s).items():
         out = WORK / f"scores_{name}.pkl"
         if out.exists():
-            continue
-        net, tok = _new_net()
+            part = pd.read_pickle(out)
+            bad = ~np.isfinite(part[["lp1", "lp2"]].to_numpy(float)).all(1)
+            if not bad.any():
+                continue
+            net, tok = cc.load_model(MODELS / name)
+            if all(bool(torch.isfinite(p).all()) for p in net.parameters()):
+                lp = score_sorted(net, tok, list(s.loc[part.loc[bad, "row"], "sentence"]), "cuda")
+                part.loc[bad, ["lp1", "lp2"]] = lp
+                _write_scores(part, out)
+                print(f"{name}: repaired {int(bad.sum())} rows", flush=True)
+                del net, tok
+                _release()
+                continue
+            print(f"{name}: saved weights are not finite; training again", flush=True)
+            del net, tok
+            _release()
+        net, tok, precision = _train_model(s, rows, settings)
         tr = rows["train"]
-        fine_tune_soft(net, tok, list(s.loc[tr, "sentence"]), soft_levels(s.loc[tr, PROBS]), SEED, "cuda",
-                       settings["lr"], settings["epochs"])
         cc.save_model(net, tok, MODELS / name, {"model": name, "settings": settings, "n_train": len(tr),
+                                                "precision": precision,
                                                 "train_years": [int(s.loc[tr, "year"].min()),
                                                                 int(s.loc[tr, "year"].max())],
                                                 "label_source": "Claude Haiku 5.5 class probabilities"})
         lp = score_sorted(net, tok, list(s.loc[rows["score"], "sentence"]), "cuda")
         part = pd.DataFrame({"row": rows["score"], "lp1": lp[:, 0], "lp2": lp[:, 1]})
-        part.to_pickle(out.with_name(out.name + ".tmp"))
-        out.with_name(out.name + ".tmp").replace(out)
-        print(f"{name}: trained on {len(tr)}, scored {len(part)}", flush=True)
+        _write_scores(part, out)
+        print(f"{name}: trained on {len(tr)} ({precision}), scored {len(part)}", flush=True)
         del net, tok
         _release()
+
+
+def _write_scores(part: pd.DataFrame, out) -> None:
+    """Write a score file atomically; refuse non-finite level probabilities."""
+    if not np.isfinite(part[["lp1", "lp2"]].to_numpy(float)).all():
+        raise FloatingPointError(f"{out.name}: non-finite level probabilities")
+    tmp = out.with_name(out.name + ".tmp")
+    part.to_pickle(tmp)
+    tmp.replace(out)
 
 
 def tone() -> pd.DataFrame:

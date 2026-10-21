@@ -145,3 +145,25 @@ def test_a_diverged_setting_with_nan_loss_never_wins():
     rows = [{"lr": 4e-5, "epochs": 2, "val_ce": float("nan")}, {"lr": 2e-5, "epochs": 2, "val_ce": 0.83},
             {"lr": 1e-5, "epochs": 1, "val_ce": 0.84}]
     assert cd.pick_best(rows) == {"lr": 2e-5, "epochs": 2}
+
+
+def test_batches_with_a_non_finite_loss_are_skipped_and_the_weights_stay_finite():
+    net, tok = _tiny()
+    texts = ["raise hike rates", "cut ease rates", "the meeting", "rates"] * 4
+    lv = cd.soft_levels(np.array([[0.05, 0.15, 0.8], [0.8, 0.15, 0.05], [0.1, 0.8, 0.1], [0.3, 0.4, 0.3]] * 4))
+    lv[0] = np.nan  # one bad target makes the loss of its batch NaN
+    cd.fine_tune_soft(net, tok, texts, lv, seed=0, device="cpu", lr=1e-3, epochs=2, batch=4)
+    assert all(torch.isfinite(p).all() for p in net.parameters())
+
+
+def test_training_that_ends_with_non_finite_weights_raises():
+    net, tok = _tiny()
+    with torch.no_grad():
+        net.head.weight.weight.fill_(float("nan"))
+    texts = ["raise hike rates", "cut ease rates"] * 4
+    lv = cd.soft_levels(np.array([[0.05, 0.15, 0.8], [0.8, 0.15, 0.05]] * 4))
+    try:
+        cd.fine_tune_soft(net, tok, texts, lv, seed=0, device="cpu", lr=1e-3, epochs=1, batch=4)
+    except FloatingPointError:
+        return
+    raise AssertionError("expected FloatingPointError")
