@@ -1,0 +1,14 @@
+{
+  "from_2010_final_model": {
+    "n": 199431,
+    "tone_correlation": 0.72884637381974,
+    "soft_cross_entropy": 0.8581680488920984,
+    "agreement": 0.8380291930542393
+  },
+  "before_2010_cross_fitted": {
+    "n": 144211,
+    "tone_correlation": 0.7137382774474816,
+    "soft_cross_entropy": 0.820981953966203,
+    "agreement": 0.8796416362136037
+  }
+}

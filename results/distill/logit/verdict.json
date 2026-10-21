@@ -1,0 +1,39 @@
+{
+  "s_m_equals_coral": true,
+  "from2010": {
+    "start": "2010-01-01",
+    "n_test_meetings": 135,
+    "first": "2010-01-27",
+    "last": "2026-09-16",
+    "n_rate_moves": 32,
+    "primary_clark_west_p": 0.21991138753540862,
+    "placebo_cw_p": 0.10487626065055244,
+    "shuffled_cw_p": 0.9301718396668699,
+    "decision": "not supported",
+    "wording": "not significant at 5% (p = 0.22); this does not show that the Haiku-distilled ChronoBERT tone does not help"
+  },
+  "full": {
+    "start": null,
+    "n_test_meetings": 212,
+    "first": "2001-01-03",
+    "last": "2026-09-16",
+    "n_rate_moves": 72,
+    "primary_clark_west_p": 0.15720692224290422,
+    "placebo_cw_p": 0.12085075917521748,
+    "shuffled_cw_p": 0.993007977158463,
+    "decision": "not supported",
+    "wording": "not significant at 5% (p = 0.157); this does not show that the Haiku-distilled ChronoBERT tone does not help"
+  },
+  "primary": {
+    "start": "2010-01-01",
+    "n_test_meetings": 135,
+    "first": "2010-01-27",
+    "last": "2026-09-16",
+    "n_rate_moves": 32,
+    "primary_clark_west_p": 0.21991138753540862,
+    "placebo_cw_p": 0.10487626065055244,
+    "shuffled_cw_p": 0.9301718396668699,
+    "decision": "not supported",
+    "wording": "not significant at 5% (p = 0.22); this does not show that the Haiku-distilled ChronoBERT tone does not help"
+  }
+}

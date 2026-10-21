@@ -1,0 +1,23 @@
+{
+  "lr": 2e-05,
+  "epochs": 2,
+  "vintage": 2009,
+  "base_model": "manelalab/chrono-bert-v1-20091231",
+  "seed": 0,
+  "batch": 16,
+  "max_length": 256,
+  "weight_decay": 0.01,
+  "bias_lr": 0.01,
+  "loss": "CORAL with soft level targets (P_N + P_H, P_H) from Haiku",
+  "grid": {
+    "lr": [
+      1e-05,
+      2e-05,
+      4e-05
+    ],
+    "epochs": [
+      1,
+      2
+    ]
+  }
+}

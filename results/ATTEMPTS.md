@@ -32,7 +32,7 @@ The full write-ups are in that repository. Only the headline primary result is r
 | 9 | **CORAL study** (design 2026-10-20, registered): ordered logit with ChronoBERT-CORAL (Co) and Haiku ordinal (Ho) tones, 212 meetings | Clark-West, Holm over 2 | Ho: p = 0.066 (Holm 0.133); Co: p = 0.424 | not supported |
 | 10 | CORAL study, CORAL LSTM/GRU/TFT, 206 scheduled meetings | Newey-West (8 lags) on log loss, Holm over 6 | best: LSTM + Ho p = 0.024 (Holm 0.145); TFT + Ho p = 0.033 (Holm 0.163); GRU + Ho 0.076 (Holm 0.303); all Co Holm ≥ 0.44 | not supported |
 | 11 | CORAL amendment 3 (declared after the full-sample p-values): same tests on meetings from 2010 | as attempts 9 and 10 | logit Ho p = 0.0498 (Holm over 2: 0.0997); networks: TFT + Ho p = 0.012 (Holm over 6: 0.073) | not supported |
-| 12 | **Haiku-distilled ChronoBERT** (design 2026-10-21, Part B; declared before the run, chosen after attempts 9-11) | Clark-West, one test, meetings from 2010 | *running* | *pending* |
+| 12 | **Haiku-distilled ChronoBERT** (design 2026-10-21, Part B; declared before the run, chosen after attempts 9-11): ChronoBERT 2009 trained on Haiku's probabilities for 144,211 pre-2010 sentences, frozen, reads 2010 onward alone | Clark-West, one test, ordered logit, 135 meetings from 2010 | p = 0.220 (placebo 0.105, shuffled 0.930, not void). Log loss 0.356 to 0.320, accuracy 83.7% to 85.9% (Haiku ordinal itself: 0.317, 85.9%). Full period: p = 0.157 | not supported |
 
 Supporting facts for reading the Haiku results (from Study 4):
 - Haiku recalls 87.8% of FOMC decisions from the date alone.
