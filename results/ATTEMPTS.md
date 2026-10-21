@@ -61,6 +61,27 @@ Notes on attempt 14:
   - Without those two meetings, Clark-West p is 0.0098 for the split tone and 0.058 for the single tone. The split
     tone's result does not depend on them.
 
+- **Why the TFT placebo of attempt 14b beats S+M (Newey-West p = 0.047)** (2026-10-22, scratch script; chosen after
+  the result).
+  - The p-value is computed correctly: a hand-written Newey-West (8 lags) gives p = 0.048.
+  - Small-sample tests do not reject: fixed-b p = 0.070, fixed-m p = 0.087.
+  - One meeting drives it. On 2018-05-02 the S+M TFT gave the actual hold a probability of 0.028; the placebo gave
+    0.230. Without that meeting, p = 0.160. The 3 largest gains make up 51% of the total gain.
+  - The S+M baseline is weak. From 2010, 8 of the 10 other TFT versions have a lower log loss than S+M (0.403); for
+    the LSTM it is 10 of 10, for the GRU 9 of 10. On mean log loss, 22 of the 24 placebo comparisons (4 placebo tones
+    × 3 networks × 2 periods) favour the placebo.
+  - Across those 24 placebo comparisons, 1 has p < 0.05 and 2 have p < 0.10, close to the 5% and 10% expected by
+    chance. Their median p is 0.29, below the 0.5 expected under a true null, which fits a weak common baseline.
+  - Training randomness is larger than the gain. The 8 single seeds of the TFT S+M range from 0.384 to 0.581 in log
+    loss, and those of the placebo from 0.346 to 0.536, against a mean gain of 0.058. The Newey-West test only
+    counts variation across meetings, not variation from training and tuning.
+  - The rolled tone carries no decision signal from 2010: its correlation with the decision class is −0.02
+    (statements and press conferences), +0.03 (minutes) and +0.10 (speeches), against +0.40, +0.42 and +0.31 for the
+    real tone.
+  - What this means: a network tested against S+M can pass without any news content, so the comparison with the
+    placebo is the fairer test. This applies to attempt 12b too (TFT against S+M p = 0.0017; against its placebo
+    p = 0.082).
+
 - **Romano-Wolf correction instead of Holm** (2026-10-21, scratch script): the 6 network tests are only weakly correlated (mostly −0.5 to +0.5). The Romano-Wolf adjusted p-values were larger than Holm's for the best tests: LSTM + Ho 0.180 vs 0.145; TFT + Ho 0.210 vs 0.163. A correlation-aware correction does not rescue any test.
 - **Literature tests on the saved forecasts** (design 2026-10-21, Part A; full tables in results/sigtests/).
   576 pairwise tests, 8 in-sample tests, joint tests per family. What they show:
