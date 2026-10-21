@@ -25,6 +25,10 @@ can be checked.
   frozen at the end of 2009, so it cannot remember later decisions. Two limits: this was the declared secondary
   test (the primary ordered-logit test gave Clark-West p = 0.220), and the TFT's gain over a placebo tone is not
   significant (p = 0.082).
+- **Attempt 14 (exploratory, the 14th attempt, declared before its run).** The same distilled tone split into
+  statements and press conferences, minutes and speeches passes its primary test: ordered logit, 135 meetings from
+  2010, log loss 0.356 to 0.322, Clark-West p = 0.0100 (placebo 0.456). Two limits: the split is not shown to beat
+  the single distilled tone (p = 0.071), and its declared secondary network test is not significant (Holm p ≥ 0.297).
 - **Study 4.** Only one gain is significant, LSTM + Claude Haiku on meetings (Holm p = 0.020), under an amendment
   written after the first network results, and it is not confirmed on strict real-time data.
 - Not significant does not mean news fails: with about 135-210 test meetings, gains this small are hard to tell
@@ -39,7 +43,7 @@ can be checked.
 | Literature tests | exploratory | Do the tests other studies use (fixed-b, fixed-m, ranked probability score, Giacomini-White, SPA, in-sample) change the picture? | [`docs/studies/3_sigtests_distill/`](docs/studies/3_sigtests_distill/) (Part A) | `sigtests/` | [`results/sigtests/`](results/sigtests/) | No test that passes its placebo check gives p < 0.05 after Holm; closest 0.050-0.052 |
 | Haiku-distilled ChronoBERT | 12, 12b | Does ChronoBERT trained on Haiku's probabilities up to 2009 (tone "Hd") help from 2010? | [`docs/studies/3_sigtests_distill/`](docs/studies/3_sigtests_distill/) (Part B) | `distill/` | [`results/distill/`](results/distill/) | Ordered logit p = 0.220 (not supported). Networks: TFT Holm p = 0.0050 against no news, p = 0.082 against its placebo |
 | Text against economic data | 13 | Does tone help beyond a Taylor rule without market prices? | [`docs/studies/4_text_vs_economy/`](docs/studies/4_text_vs_economy/) | not built | none | Designed, not run |
-| Tone by document type | 14 | Does splitting the distilled tone into statements, minutes and speeches (6 columns instead of 2) help? | [`docs/studies/5_doctype/`](docs/studies/5_doctype/) | `doctype/` | `results/doctype/` | Ordered logit Clark-West p = 0.0100 (supported, exploratory; placebo 0.456); split against the single tone p = 0.071. Networks running |
+| Tone by document type | 14, 14b | Does splitting the distilled tone into statements, minutes and speeches (6 columns instead of 2) help? | [`docs/studies/5_doctype/`](docs/studies/5_doctype/) | `doctype/` | [`results/doctype/`](results/doctype/) | Ordered logit Clark-West p = 0.0100 (supported, exploratory; placebo 0.456); split against the single tone p = 0.071. Networks (declared secondary, 14b): not significant, Holm p ≥ 0.297 |
 
 ## Repository layout
 

@@ -10,6 +10,7 @@ out. Read it before reading any single p-value.
 | `coral/` | CORAL study (attempts 9-11) | `logit/` and `networks/` (2001-2026), `logit_from2010/` and `networks_from2010/` (amendment 3), the ChronoBERT-CORAL accuracy, the tuned network settings (`networks_hyperparameters.csv`), and `EXPLAINER_TH.md`, which explains the study in Thai |
 | `sigtests/` | Literature tests (exploratory) | `SUMMARY.md` first; pairwise tests, in-sample tests and joint tests on the saved forecasts |
 | `distill/` | Haiku-distilled ChronoBERT (attempts 12, 12b) | `settings.json` (tuning), `fidelity.json` (agreement with Haiku), `logit/` (primary test), `networks/` (declared secondary test) |
+| `doctype/` | Distilled tone split by document type (attempts 14, 14b) | `logit/` (primary test, `verdict.json`), `networks/` (declared secondary test: `summary.json`, `comparison.csv`, `small_sample.csv`, `metrics.csv`, tuned settings and forecasts) |
 | `inputs_from_earlier/` | Study 4 | Two input files copied from earlier designs (Haiku memory exam, untuned paper-settings forecasts) |
 | `stance_accuracy.csv` | Study 4 | Held-out accuracy of the per-year ChronoBERT stance classifiers |
 | `coverage.csv`, `dropped_docs.json` | all | Fed document corpus coverage by year and type, and documents dropped while building it |
